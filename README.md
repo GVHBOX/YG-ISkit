@@ -1,4 +1,4 @@
-# GVH 以图搜图助手 (Image Search Assistant)
+# Yandex/Google 以图搜图插件 (Image Search Kit)
 
 通用多引擎以图搜图 Chrome 扩展：**鼠标悬停图片即可选择引擎搜索**，支持**框选截图自动上传识图**（Yandex / Google Lens）。引擎列表完全可自定义，纯本地处理、无任何追踪。
 
@@ -24,23 +24,13 @@ Multi-engine reverse image search Chrome extension: **hover any image to search 
 
 ---
 
-## 🚀 安装 / Installation
-
-> Chrome 116+（Manifest V3）
-
-### 方式一：从源码加载（开发者模式）
-
+## 安装
 1. 下载本仓库并解压（或 `git clone`）
 2. 打开 Chrome，访问 `chrome://extensions/`
 3. 打开右上角 **开发者模式**
 4. 点击 **加载已解压的扩展程序**，选择本仓库文件夹
 5. 安装完成，工具栏出现扩展图标
 
-### 方式二：从 Release 安装
-
-1. 前往本仓库 [Releases](https://github.com/GVHBOX/image-search-assistant/releases) 页面
-2. 下载最新版本的 `.zip` 包并解压
-3. 按「方式一」的第 2–5 步加载（Chrome 商店发布版可直接安装，非商店版本均需开发者模式）
 
 ---
 
