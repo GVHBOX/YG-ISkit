@@ -1,9 +1,6 @@
 # Yandex/Google 以图搜图插件 (Image Search Kit)
 
 通用多引擎以图搜图 Chrome 扩展：**鼠标悬停图片即可选择引擎搜索**，支持**框选截图自动上传识图**（Yandex / Google Lens）。引擎列表完全可自定义，纯本地处理、无任何追踪。
-
-Multi-engine reverse image search Chrome extension: **hover any image to search with your chosen engine**, plus **drag-select screenshots auto-uploaded to Yandex / Google Lens**. Fully configurable engine list, all client-side, no tracking.
-
 ---
 
 ## ✨ 功能特性 / Features
@@ -30,7 +27,6 @@ Multi-engine reverse image search Chrome extension: **hover any image to search 
 3. 打开右上角 **开发者模式**
 4. 点击 **加载已解压的扩展程序**，选择本仓库文件夹
 5. 安装完成，工具栏出现扩展图标
-
 
 ---
 
@@ -68,82 +64,6 @@ Multi-engine reverse image search Chrome extension: **hover any image to search 
 - **界面**：语言（中文/English）、主题、图标条尺寸、对齐位置、状态气泡开关
 - **自定义图标**：为每个引擎上传本地图片作为图标（自动压缩至 48×48）
 - **使用统计**：本地统计截图 / 搜索次数（仅存本地）
-
----
-
-## 🔧 自定义引擎 / Custom Engines
-
-每个引擎 = 一个 URL 模板，`{%s}` 会被替换为**编码后的图片地址**。
-
-例如自定义一个搜图引擎：
-
-```
-名称：   Google Images
-URL：    https://www.google.com/searchbyimage?image_url={%s}
-图标：   G（或上传图片）
-```
-
-也可在选项页给引擎配置域名模板（适合某些需特殊处理的站点）。
-
----
-
-## 🗂 权限说明 / Permissions
-
-本扩展仅在**你主动触发搜索**时访问图片，不上传任何浏览数据、不注入广告。所需权限及其用途：
-
-| 权限 | 用途 |
-|---|---|
-| `storage` | 本地保存你的配置、历史记录、使用统计 |
-| `contextMenus` | 右键菜单中的截图搜图入口 |
-| `activeTab` + `host_permissions` | 读取当前页图片、注入悬停条与框选遮罩 |
-| `downloads` | 自动保存截图到下载目录 |
-| `clipboardWrite` + `offscreen` | 将截图写入剪贴板（通过后台 offscreen 文档） |
-| `notifications` | 搜索完成 / 失败时系统通知 |
-| `declarativeNetRequestWithHostAccess` | 修正 Google / Yandex 上传请求头，避免被识别为异常而拒绝 |
-
-所有数据均存储于浏览器本地（`chrome.storage`），无服务器、无跟踪。
-
----
-
-## ❓ 常见问题 / FAQ
-
-**Q：为什么 Google 识图有时失败？**
-Google 对自动化上传有较严格的风控。扩展已通过 DNR 修正请求头并预置 cookie 预热，若仍失败请稍后重试；Yandex 通常更稳定。
-
-**Q：悬停搜索在某些网站不生效？**
-可能是该网站被加入了黑名单，或你开启了白名单模式。检查选项页 → 黑名单 / 白名单。
-
-**Q：能离线使用吗？**
-本扩展本身离线可用（配置、悬停条均本地），但识图需要联网访问对应搜索引擎。
-
-**Q：数据会上传到服务器吗？**
-不会。仅在你自己点击搜索时，将图片发送到所选搜索引擎（如 Yandex）进行识别；无任何中间服务器。
-
----
-
-## 🧑💻 开发 / Development
-
-```
-git clone https://github.com/GVHBOX/image-search-assistant.git
-```
-
-结构说明：
-
-```
-background.js    # 后台 Service Worker：截图、上传、右键菜单、DNR 请求修正
-content.js       # 内容脚本：悬停图标条、框选遮罩、状态气泡
-content.css      # 内容脚本样式
-defaults.js      # 共享默认配置（引擎列表、默认值），三个入口共用
-i18n.js          # 中英文 i18n 字典
-options.html/js  # 选项页
-offscreen.js     # 离屏文档：剪贴板写入
-manifest.json    # MV3 清单
-icons/           # 扩展图标
-```
-
-加载修改后的代码：`chrome://extensions/` → 点击扩展卡片上的 **刷新** 按钮即可。
-
----
 
 ## 📄 许可证 / License
 
