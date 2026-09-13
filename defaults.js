@@ -33,6 +33,7 @@ self.DEFAULT_SETTINGS = {
   selColor: "#ffcc00",
   saveShot: false,
   saveShotDir: self.DEFAULT_SAVE_DIR,
+  saveShotViaFs: false,
   copyShot: false,
   statusBubble: true,
   bubbleSize: 12.5,

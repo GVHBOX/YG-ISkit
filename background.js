@@ -592,42 +592,37 @@ async function setupOffscreenDoc() {
   });
 }
 
-async function copyViaOffscreen(pngDataUrl) {
-  let lastErr = "无响应";
+async function sendOffscreen(payload) {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       await setupOffscreenDoc();
       if (attempt > 0) await new Promise((r) => setTimeout(r, 250 * attempt));
       const resp = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: "ysx-offscreen-copy", dataUrl: pngDataUrl }, (r2) => {
+        chrome.runtime.sendMessage(payload, (r) => {
           void chrome.runtime.lastError;
-          resolve(r2 || null);
+          resolve(r === undefined ? null : r);
         });
       });
-      if (resp && resp.ok) return;
-      lastErr = resp && resp.error ? resp.error : "无响应";
-      if (!resp) {
-        try {
-          await chrome.offscreen.closeDocument();
-        } catch (e) { }
-      }
+      if (resp) return resp;
+      try { await chrome.offscreen.closeDocument(); } catch (e) { }
     } catch (e) {
-      lastErr = String((e && e.message) || e);
-      try {
-        await chrome.offscreen.closeDocument();
-      } catch (e2) { }
+      try { await chrome.offscreen.closeDocument(); } catch (e2) { }
     }
   }
-  throw new Error(I18N.t("clipboardFail") + lastErr + ")");
+  return null;
+}
+
+async function copyViaOffscreen(pngDataUrl) {
+  const resp = await sendOffscreen({ type: "ysx-offscreen-copy", dataUrl: pngDataUrl });
+  if (resp && resp.ok) return;
+  throw new Error(I18N.t("clipboardFail") + ((resp && resp.error) || "无响应") + ")");
 }
 
 async function saveShotToDownloads(blob, format) {
-  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
-  if (!granted) {
-    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
-    return;
-  }
-  const { saveShotDir = "" } = await chrome.storage.sync.get({ saveShotDir: "" });
+  const { saveShotDir = "", saveShotViaFs = false } = await chrome.storage.sync.get({
+    saveShotDir: "",
+    saveShotViaFs: false,
+  });
   const dir = cleanSaveDir(saveShotDir);
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
@@ -636,13 +631,14 @@ async function saveShotToDownloads(blob, format) {
     "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
   const ext = format === "png" ? "png" : "jpg";
   const dataUrl = await blobToDataUrl(blob);
+  if (saveShotViaFs && (await saveShotViaHandle(dataUrl, "ysx-" + stamp, ext))) return;
+  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
+  if (!granted) {
+    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
+    return;
+  }
   await setupOffscreenDoc();
-  const resp = await new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: "ysx-offscreen-objecturl", dataUrl }, (r) => {
-      void chrome.runtime.lastError;
-      resolve(r || null);
-    });
-  });
+  const resp = await sendOffscreen({ type: "ysx-offscreen-objecturl", dataUrl });
   if (!resp || !resp.ok || !resp.url) {
     throw new Error(resp && resp.error ? resp.error : "无响应");
   }
@@ -651,6 +647,20 @@ async function saveShotToDownloads(blob, format) {
     filename: (dir ? dir + "/" : "") + "ysx-" + stamp + "." + ext,
     saveAs: false,
   });
+}
+
+async function saveShotViaHandle(dataUrl, stamp, ext) {
+  const resp = await sendOffscreen({ type: "ysx-offscreen-fs-save", dataUrl, base: stamp, ext });
+  if (resp && resp.ok) return true;
+  if (resp && resp.noHandle) {
+    await chrome.storage.sync.set({ saveShotViaFs: false });
+    return false;
+  }
+  if (resp && resp.needPermission) {
+    notify(I18N.t("extName"), I18N.t("fsPermLost"));
+    return false;
+  }
+  return false;
 }
 
 async function uploadToYandex(blob) {
