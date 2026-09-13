@@ -25,9 +25,9 @@
   let selColor = "#ffcc00";
   let statusBubbleOn = true;
   let bubbleSize = 12.5;
-  let searchAllOn = true; // 「全」按钮开关
-  let allBtnIcon = "全";
-  let infoCardOn = true; // 图片信息卡片开关
+  let searchAllOn = false; // 「全」按钮开关
+  let allBtnIcon = "∀";
+  let infoCardOn = false; // 图片信息卡片开关
   let infoCard = null; // 图片信息卡片
   let allBtnColor = "#3a3f45";
   let btnSize = 28; // 按钮尺寸（声明提前，避免先赋值后声明的 TDZ 风险）
@@ -114,10 +114,10 @@
         selColor: "#ffcc00",
         statusBubble: true,
         bubbleSize: 12.5,
-        enableSearchAll: true,
-        allBtnIcon: "全",
+        enableSearchAll: false,
+        allBtnIcon: "∀",
         allBtnColor: "#3a3f45",
-        infoCard: true,
+        infoCard: false,
         lang: "zh",
         theme: "light",
         blacklist: "",

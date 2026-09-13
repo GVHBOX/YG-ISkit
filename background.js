@@ -55,7 +55,7 @@ async function getSettings() {
     hideDelay: 300,
     ysxBtnSize: 28,
     openMode: "foreground",
-    enableSearchAll: true,
+    enableSearchAll: false,
     historyEnabled: false,
     historyKeep: 30, // 天，0 = 永久
     uploadEngine: "yandex",

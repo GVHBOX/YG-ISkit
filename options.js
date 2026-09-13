@@ -2,7 +2,7 @@
 const rowsEl = document.getElementById("engineRows");
 const statusEl = document.getElementById("status");
 
-const ALL_BTN_DEFAULT_ICON = "全";
+const ALL_BTN_DEFAULT_ICON = "∀";
 
 document.getElementById("verDisplay").textContent = "v" + chrome.runtime.getManifest().version;
 
@@ -313,9 +313,8 @@ document.getElementById("resetEngines").addEventListener("click", async () => {
     const engines = getEnginesFromUI();
     const stored = await extractIconsToLib(engines);
     await pruneIconLib(stored);
-    await chrome.storage.sync.set({ engines: stored });
-    clearDirty();
-    showStatus(I18N.t("resetDone"));
+    await chrome.storage.sync.set({ engines: stored, ...ALL_DEFAULTS });
+    location.reload();
   } catch (e) {
     showStatus(I18N.t("resetFail") + ((e && e.message) || e), true);
   }
@@ -456,6 +455,40 @@ const blRowsEl = document.getElementById("blRows");
 const wlRowsEl = document.getElementById("wlRows");
 
 const COMMON_SITES = ["google.com", "yandex.ru", "bing.com", "baidu.com", "saucenao.com", "ascii2d.net"];
+
+const DEFAULT_WHITELIST = COMMON_SITES.slice(0, 2).join("\n");
+
+const ALL_DEFAULTS = {
+  screenshotMenu: true,
+  barAlign: "center",
+  hoverEnabled: true,
+  hoverDelay: 300,
+  hideDelay: 300,
+  ysxBtnSize: 28,
+  openMode: "foreground",
+  uploadEngine: "yandex",
+  enableShotAll: false,
+  shotFormat: "jpeg",
+  shotQuality: 92,
+  selectMode: "instant",
+  confirmPulse: true,
+  selColor: "#ffcc00",
+  saveShot: false,
+  saveShotDir: DEFAULT_SAVE_DIR,
+  copyShot: false,
+  statusBubble: true,
+  bubbleSize: 12.5,
+  debugLogOn: false,
+  enableSearchAll: false,
+  infoCard: false,
+  whitelistMode: false,
+  whitelist: DEFAULT_WHITELIST,
+  allBtnIcon: ALL_BTN_DEFAULT_ICON,
+  allBtnColor: "#3a3f45",
+  historyEnabled: false,
+  historyKeep: 30,
+  blacklist: "",
+};
 
 function wlRowHtml(domain) {
   return `<div class="engine-grid bl-grid bl-row">
@@ -600,7 +633,7 @@ function renderBarPreview() {
     ["Y", "#FC3F1D"],
     ["G", "#4285F4"],
     ["度", "#2932E1"],
-    ["全", "#3a3f45"],
+    ["∀", "#3a3f45"],
   ];
   for (const [t, c] of samples) {
     const b = document.createElement("div");
@@ -858,34 +891,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
 (async () => {
   const s = await chrome.storage.sync.get({
     engines: DEFAULT_ENGINES,
-    screenshotMenu: true,
-    barAlign: "center",
-    hoverEnabled: true,
-    hoverDelay: 300,
-    hideDelay: 300,
-    ysxBtnSize: 28,
-    openMode: "foreground",
-    uploadEngine: "yandex",
-    enableShotAll: false,
-    shotFormat: "jpeg",
-    shotQuality: 92,
-    selectMode: "instant",
-    selColor: "#ffcc00",
-    saveShot: false,
-    saveShotDir: DEFAULT_SAVE_DIR,
-    copyShot: false,
-    statusBubble: true,
-    bubbleSize: 12.5,
-    debugLogOn: false,
-    enableSearchAll: true,
-    infoCard: true,
-    whitelistMode: false,
-    whitelist: COMMON_SITES.slice(0, 4).join("\n"),
-    allBtnIcon: ALL_BTN_DEFAULT_ICON,
-    allBtnColor: "#3a3f45",
-    historyEnabled: false,
-    historyKeep: 30,
-    blacklist: "",
+    ...ALL_DEFAULTS,
   });
   const list = (Array.isArray(s.engines) ? s.engines : DEFAULT_ENGINES)
     .filter((e) => e && e.name && e.url);
