@@ -39,7 +39,7 @@ self.DEFAULT_SETTINGS = {
   debugLogOn: false,
   enableSearchAll: false,
   infoCard: false,
-  whitelistMode: false,
+  whitelistMode: true,
   whitelist: self.DEFAULT_WHITELIST,
   allBtnIcon: "∀",
   allBtnColor: "#3a3f45",
