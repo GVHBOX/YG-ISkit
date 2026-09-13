@@ -1,7 +1,7 @@
 (function (root) {
   const dict = {
     zh: {
-      extName: "GVH-以图搜图助手",
+      extName: "YG以图搜图助手",
       save: "保存",
       saved: "已保存，全部立即生效",
       open: "打开",
@@ -156,7 +156,7 @@
       shotAllHint: "开启后截图将同时上传 Yandex 与 Google，上方「上传引擎」不再生效",
     },
     en: {
-      extName: "GVH Image Search Assistant",
+      extName: "YG Image Search Assistant",
       save: "Save",
       saved: "Saved, all applied",
       open: "Open",
