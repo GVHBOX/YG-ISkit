@@ -15,8 +15,6 @@ function applyLang() {
   });
   document.title = I18N.t("extName");
   document.getElementById("langToggle").textContent = I18N.getLang() === "zh" ? "EN" : I18N.t("langSelf");
-  document.getElementById("presetName").placeholder = I18N.t("presetNamePh");
-  renderPresetSelect();
   renderHistory();
 }
 
@@ -286,42 +284,13 @@ document.getElementById("addEngine").addEventListener("click", () => {
   last.querySelector(".e-name").select();
 });
 
-let presets = []; // { id, name, engines }
 let applyArmed = false; // 「恢复默认」两段式确认状态
 let applyArmTimer = null;
-
-async function loadPresets() {
-  try {
-    ({ ysxPresets: presets } = await chrome.storage.local.get({ ysxPresets: [] }));
-  } catch (e) {
-    presets = [];
-  }
-  renderPresetSelect();
-}
-
-function renderPresetSelect() {
-  const sel = document.getElementById("presetSelect");
-  sel.innerHTML = "";
-  const def = document.createElement("option");
-  def.value = "__default__";
-  def.textContent = I18N.t("presetDefault");
-  sel.appendChild(def);
-  for (const p of presets) {
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = p.name;
-    sel.appendChild(opt);
-  }
-}
-
-async function savePresetsToStorage() {
-  await chrome.storage.local.set({ ysxPresets: presets });
-}
 
 async function applyEngineList(list, sourceLabel) {
   if (dirty && !applyArmed) {
     applyArmed = true;
-    showStatus(I18N.t("presetApplyConfirm") + " — " + I18N.t("presetConfirmSave"));
+    showStatus(I18N.t("resetConfirm") + " — " + I18N.t("confirmAgain"));
     clearTimeout(applyArmTimer);
     applyArmTimer = setTimeout(() => { applyArmed = false; }, 4000);
     return false;
@@ -350,60 +319,6 @@ document.getElementById("resetEngines").addEventListener("click", async () => {
   } catch (e) {
     showStatus(I18N.t("resetFail") + ((e && e.message) || e), true);
   }
-});
-
-document.getElementById("presetSave").addEventListener("click", async () => {
-  const name = document.getElementById("presetName").value.trim() ||
-    "Preset " + (presets.length + 1);
-  const engines = getEnginesFromUI();
-  if (!engines.length) {
-    showStatus(I18N.t("atLeastOneEngine"), true);
-    return;
-  }
-  const existing = presets.find((p) => p.name === name);
-  const entry = { id: existing ? existing.id : "p" + Date.now(), name, engines };
-  if (existing) {
-    presets = presets.map((p) => (p.id === existing.id ? entry : p));
-  } else {
-    presets.push(entry);
-  }
-  await savePresetsToStorage();
-  renderPresetSelect();
-  document.getElementById("presetSelect").value = entry.id;
-  showStatus(I18N.t("presetSaved") + name + (existing ? I18N.t("presetOverwritten") : ""));
-});
-
-document.getElementById("presetDelete").addEventListener("click", async () => {
-  const id = document.getElementById("presetSelect").value;
-  if (id === "__default__") return; // 内置默认预设不可删
-  const target = presets.find((p) => p.id === id);
-  if (!target) {
-    showStatus(I18N.t("presetNoneSelected"));
-    return;
-  }
-  if (!applyArmed) {
-    applyArmed = true;
-    showStatus(I18N.t("presetDeleted") + target.name + " — " + I18N.t("presetConfirmSave"));
-    clearTimeout(applyArmTimer);
-    applyArmTimer = setTimeout(() => { applyArmed = false; }, 4000);
-    return;
-  }
-  applyArmed = false;
-  clearTimeout(applyArmTimer);
-  presets = presets.filter((p) => p.id !== id);
-  await savePresetsToStorage();
-  renderPresetSelect();
-  showStatus(I18N.t("presetDeleted") + target.name);
-});
-
-document.getElementById("presetSelect").addEventListener("change", async (e) => {
-  const id = e.target.value;
-  if (id === "__default__") {
-    await applyEngineList(DEFAULT_ENGINES.map((x) => ({ ...x })), I18N.t("presetApplied"));
-    return;
-  }
-  const p = presets.find((x) => x.id === id);
-  if (p) await applyEngineList(p.engines.map((x) => ({ ...x })), I18N.t("presetApplied"));
 });
 
 rowsEl.addEventListener("click", (e) => {
@@ -1022,7 +937,6 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   selChip.style.background = selChip.dataset.color;
   bindPaletteToChip(selChip);
   syncQualityEnabled();
-  loadPresets();
   renderBarPreview();
   renderHistory();
   renderStats();
