@@ -2,12 +2,12 @@
 self.DEFAULT_ENGINES = [
   { name: "Yandex", url: "https://yandex.ru/images/search?rpt=imageview&url={%s}", enabled: true, icon: "Y", color: "#FC3F1D" },
   { name: "Google Lens", url: "https://lens.google.com/uploadbyurl?url={%s}", enabled: true, icon: "G", color: "#4285F4" },
-  { name: "Bing", url: "https://www.bing.com/images/search?q=imgurl:{%s}", enabled: false, icon: "b", color: "#008373" },
-  { name: "Baidu", url: "https://graph.baidu.com/details?isfromtusoupc=1&tn=pc&image={%s}", enabled: false, icon: "度", color: "#7B1FA2" },
+  { name: "Bing", url: "https://www.bing.com/images/search?q=imgurl:{%s}", enabled: false, icon: "B", color: "#008373" },
+  { name: "Baidu", url: "https://graph.baidu.com/details?isfromtusoupc=1&tn=pc&image={%s}", enabled: false, icon: "B", color: "#7B1FA2" },
   { name: "SauceNAO", url: "https://saucenao.com/search.php?url={%s}", enabled: false, icon: "S", color: "#C9A227" },
   { name: "Ascii2D", url: "https://ascii2d.net/search/url/{%s}", enabled: false, icon: "A", color: "#5C6BC0" },
-  { name: "TinEye", url: "https://tineye.com/search?url={%s}", enabled: false, icon: "t", color: "#EE2B7B" },
-  { name: "Sogou", url: "https://pic.sogou.com/ris?query={%s}", enabled: false, icon: "搜", color: "#FB6022" },
+  { name: "TinEye", url: "https://tineye.com/search?url={%s}", enabled: false, icon: "T", color: "#EE2B7B" },
+  { name: "Sogou", url: "https://pic.sogou.com/ris?query={%s}", enabled: false, icon: "S", color: "#FB6022" },
 ];
 
 self.DEFAULT_SAVE_DIR = "以图搜图截图";
