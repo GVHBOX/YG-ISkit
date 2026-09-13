@@ -28,6 +28,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || msg.type !== "ysx-offscreen-objecturl") return;
+  (async () => {
+    try {
+      const blob = await (await fetch(msg.dataUrl)).blob();
+      const url = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      sendResponse({ ok: true, url });
+    } catch (e) {
+      sendResponse({ ok: false, error: String((e && e.message) || e) });
+    }
+  })();
+  return true;
+});
+
 function legacyCopy(pngDataUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();

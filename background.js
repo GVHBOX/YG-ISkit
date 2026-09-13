@@ -587,8 +587,8 @@ async function setupOffscreenDoc() {
   if (await hasOffscreenDoc()) return;
   await chrome.offscreen.createDocument({
     url: "offscreen.html",
-    reasons: ["CLIPBOARD"],
-    justification: "将截图写入剪贴板",
+    reasons: ["CLIPBOARD", "BLOBS"],
+    justification: "将截图写入剪贴板并为下载生成对象链接",
   });
 }
 
@@ -635,16 +635,22 @@ async function saveShotToDownloads(blob, format) {
     d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
     "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
   const ext = format === "png" ? "png" : "jpg";
-  const url = URL.createObjectURL(blob);
-  try {
-    await chrome.downloads.download({
-      url,
-      filename: (dir ? dir + "/" : "") + "ysx-" + stamp + "." + ext,
-      saveAs: false,
+  const dataUrl = await blobToDataUrl(blob);
+  await setupOffscreenDoc();
+  const resp = await new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "ysx-offscreen-objecturl", dataUrl }, (r) => {
+      void chrome.runtime.lastError;
+      resolve(r || null);
     });
-  } finally {
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
+  if (!resp || !resp.ok || !resp.url) {
+    throw new Error(resp && resp.error ? resp.error : "无响应");
   }
+  await chrome.downloads.download({
+    url: resp.url,
+    filename: (dir ? dir + "/" : "") + "ysx-" + stamp + "." + ext,
+    saveAs: false,
+  });
 }
 
 async function uploadToYandex(blob) {
