@@ -67,4 +67,4 @@
 
 ## 📄 许可证 / License
 
-本项目仅供学习与个人使用。使用第三方搜索引擎（Google / Yandex / Bing / 百度等）时请遵守各站点的服务条款。
+本项目采用 [MIT 许可证](LICENSE) 开源。使用第三方搜索引擎（Google / Yandex / Bing / 百度等）时请遵守各站点的服务条款。

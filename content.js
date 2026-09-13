@@ -384,7 +384,9 @@
             templates: engines.map((x) => x.url),
             names: engines.map((x) => x.name),
             imgSrc: src,
-          });
+          }).then((resp) => {
+            if (resp && resp.throttled) showStatusBubble(I18N.t("openAllThrottled"), "busy");
+          }).catch(() => { });
         } catch (err) { }
         hideHoverBar();
       });

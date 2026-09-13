@@ -59,6 +59,7 @@ async function getYandexTemplate() {
 }
 
 let logEnabled = null;
+let lastOpenAll = 0;
 
 async function isLogEnabled() {
   if (logEnabled === null) {
@@ -317,6 +318,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg && msg.type === "ysx-open-all") {
     if (Array.isArray(msg.templates) && msg.imgSrc && /^https?:/i.test(msg.imgSrc)) {
+      const now = Date.now();
+      if (now - lastOpenAll < 2000) {
+        sendResponse({ ok: false, throttled: true });
+        return true;
+      }
+      lastOpenAll = now;
       getSettings().then((settings) => {
         const names = Array.isArray(msg.names) ? msg.names : [];
         msg.templates.forEach((t, i) => {

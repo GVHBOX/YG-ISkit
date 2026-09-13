@@ -838,12 +838,19 @@ function sanitizeImport(raw) {
     else dropped.push(key);
   }
   if (data.engines) {
-    data.engines = data.engines.map((e) => ({
-      ...e,
-      name: String(e.name).slice(0, 24),
-      url: String(e.url),
-      enabled: e.enabled !== false,
-    }));
+    data.engines = data.engines.map((e) => {
+      const out = {
+        name: String(e.name).slice(0, 24),
+        url: String(e.url),
+        enabled: e.enabled !== false,
+        icon: typeof e.icon === "string" ? e.icon.slice(0, 4) : "",
+        color: isHexColor(e.color) ? e.color : "",
+      };
+      if (typeof e.iconImg === "string" && e.iconImg.length <= 102400 && /^(https?:|data:image\/)/.test(e.iconImg)) {
+        out.iconImg = e.iconImg;
+      }
+      return out;
+    });
   }
   return { data, dropped };
 }
