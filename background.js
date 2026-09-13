@@ -7,7 +7,7 @@ async function loadLang() {
     const { lang } = await chrome.storage.sync.get({ lang: "zh" });
     LANG = lang === "en" ? "en" : "zh";
     I18N.setLang(LANG);
-  } catch (e) { /* keep default */ }
+  } catch (e) { }
 }
 loadLang();
 
@@ -47,29 +47,7 @@ async function getEngines() {
 }
 
 async function getSettings() {
-  const s = await chrome.storage.sync.get({
-    screenshotMenu: true,
-    barAlign: "center",
-    hoverEnabled: true,
-    hoverDelay: 300,
-    hideDelay: 300,
-    ysxBtnSize: 28,
-    openMode: "foreground",
-    enableSearchAll: false,
-    historyEnabled: false,
-    historyKeep: 30, // 天，0 = 永久
-    uploadEngine: "yandex",
-    enableShotAll: false, // 「全」：截图同时用 Yandex + Google 识图
-    shotFormat: "jpeg",     // jpeg | png
-    shotQuality: 92,
-    selectMode: "instant",  // instant | confirm
-    saveShot: false,
-    saveShotDir: DEFAULT_SAVE_DIR,
-    copyShot: false,
-    statusBubble: true,
-    selColor: "#ffcc00",
-    debugLogOn: false,
-  });
+  const s = await chrome.storage.sync.get(DEFAULT_SETTINGS);
   if (!["yandex", "google"].includes(s.uploadEngine)) s.uploadEngine = "yandex";
   return s;
 }
@@ -80,7 +58,7 @@ async function getYandexTemplate() {
   return (y && y.url) || FALLBACK_YANDEX_TEMPLATE;
 }
 
-let logEnabled = null; // 模块级缓存，避免每次写日志都读 storage
+let logEnabled = null;
 
 async function isLogEnabled() {
   if (logEnabled === null) {
@@ -100,7 +78,7 @@ async function debugLog(step, detail) {
     const { ysxLog = [] } = await chrome.storage.local.get({ ysxLog: [] });
     ysxLog.push({ t: Date.now(), step, detail: String(detail || "").slice(0, 200) });
     await chrome.storage.local.set({ ysxLog: ysxLog.slice(-30) });
-  } catch (e) { /* ignore */
+  } catch (e) {
   }
 }
 
@@ -132,7 +110,7 @@ async function bumpStat(type, engineName) {
     const keys = Object.keys(ysxStats).sort();
     while (keys.length > 90) delete ysxStats[keys.shift()];
     await chrome.storage.local.set({ ysxStats });
-  } catch (e) { /* ignore */ }
+  } catch (e) { }
 }
 
 let _histChain = Promise.resolve();
@@ -150,7 +128,7 @@ async function doAddHistory(type, engineName, targetUrl, imgSrc) {
       historyKeep: 30,
       historyEnabled: false,
     });
-    if (historyEnabled === false) return; // 用户关闭了历史记录
+    if (historyEnabled === false) return;
     const { ysxHistory = [] } = await chrome.storage.local.get({ ysxHistory: [] });
     const now = Date.now();
     ysxHistory.unshift({
@@ -167,7 +145,7 @@ async function doAddHistory(type, engineName, targetUrl, imgSrc) {
       list = list.filter((x) => x.t >= cutoff);
     }
     await chrome.storage.local.set({ ysxHistory: list });
-  } catch (e) { /* ignore */
+  } catch (e) {
   }
 }
 
@@ -186,7 +164,7 @@ async function openTab(url, openMode) {
 function createMenu(props) {
   return new Promise((resolve) => {
     chrome.contextMenus.create(props, () => {
-      void chrome.runtime.lastError; // 名称/id 冲突等错误静默跳过
+      void chrome.runtime.lastError;
       resolve();
     });
   });
@@ -263,7 +241,7 @@ function sendStatus(tabId, text, tone) {
   try {
     const resp = chrome.tabs.sendMessage(tabId, { type: "ysx-status", text, tone: tone || "busy" });
     if (resp && resp.catch) resp.catch(() => {});
-  } catch (e) { /* content script 不存在时静默 */ }
+  } catch (e) { }
 }
 
 function sendCaptureDone(tabId) {
@@ -505,7 +483,7 @@ async function uploadToGoogle(blob) {
     }
     try {
       await fetch("https://www.google.com/", { credentials: "include", redirect: "follow" });
-    } catch (e) { /* 预热失败不阻断 */ }
+    } catch (e) { }
     googleWarm = { ts: Date.now(), net };
   } else {
     net = googleWarm.net;
@@ -624,13 +602,13 @@ async function copyViaOffscreen(pngDataUrl) {
       if (!resp) {
         try {
           await chrome.offscreen.closeDocument();
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
       }
     } catch (e) {
       lastErr = String((e && e.message) || e);
       try {
         await chrome.offscreen.closeDocument();
-      } catch (e2) { /* ignore */ }
+      } catch (e2) { }
     }
   }
   throw new Error(I18N.t("clipboardFail") + lastErr + ")");

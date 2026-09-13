@@ -4,3 +4,5 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+.ai/reports/*.build.json
+.ai/reports/*.fragment.html

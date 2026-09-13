@@ -12,6 +12,42 @@ self.DEFAULT_ENGINES = [
 
 self.DEFAULT_SAVE_DIR = "以图搜图截图";
 
+self.COMMON_SITES = ["google.com", "yandex.ru", "bing.com", "baidu.com", "saucenao.com", "ascii2d.net"];
+
+self.DEFAULT_WHITELIST = self.COMMON_SITES.slice(0, 2).join("\n");
+
+self.DEFAULT_SETTINGS = {
+  screenshotMenu: true,
+  barAlign: "center",
+  hoverEnabled: true,
+  hoverDelay: 300,
+  hideDelay: 300,
+  ysxBtnSize: 28,
+  openMode: "foreground",
+  uploadEngine: "yandex",
+  enableShotAll: false,
+  shotFormat: "jpeg",
+  shotQuality: 92,
+  selectMode: "instant",
+  confirmPulse: true,
+  selColor: "#ffcc00",
+  saveShot: false,
+  saveShotDir: self.DEFAULT_SAVE_DIR,
+  copyShot: false,
+  statusBubble: true,
+  bubbleSize: 12.5,
+  debugLogOn: false,
+  enableSearchAll: false,
+  infoCard: false,
+  whitelistMode: false,
+  whitelist: self.DEFAULT_WHITELIST,
+  allBtnIcon: "∀",
+  allBtnColor: "#3a3f45",
+  historyEnabled: false,
+  historyKeep: 30,
+  blacklist: "",
+};
+
 self.cleanSaveDir = function (p) {
   const segs = String(p || "")
     .trim()

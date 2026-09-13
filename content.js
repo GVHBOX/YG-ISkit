@@ -4,8 +4,8 @@
   window.__ysxInjected = true;
 
   const STATE = { overlay: null, start: null, selecting: false, rect: null, confirming: false };
-  let hoverBar = null;        // 引擎图标条
-  let barEngines = null;      // 构建当前图标条所用的引擎列表（脏检查用）
+  let hoverBar = null;
+  let barEngines = null;
   let currentImg = null;
   let currentBgUrl = null;
   let hideTimer = null;
@@ -18,22 +18,22 @@
   let hoverEnabled = true;
   let hoverDelay = 300;
   let allowWebdriverBar = false;
-  let hideDelay = 300; // 离开图片后图标条延迟消失（ms）
-  let barAlign = "center"; // 图标条对齐：left / center / right
-  let selectMode = "instant"; // instant | confirm
-  let confirmPulse = true; // 确认模式选框呼吸提醒（可在设置中关闭）
+  let hideDelay = 300;
+  let barAlign = "center";
+  let selectMode = "instant";
+  let confirmPulse = true;
   let selColor = "#ffcc00";
   let statusBubbleOn = true;
   let bubbleSize = 12.5;
-  let searchAllOn = false; // 「全」按钮开关
+  let searchAllOn = false;
   let allBtnIcon = "∀";
-  let infoCardOn = false; // 图片信息卡片开关
-  let infoCard = null; // 图片信息卡片
+  let infoCardOn = false;
+  let infoCard = null;
   let allBtnColor = "#3a3f45";
-  let btnSize = 28; // 按钮尺寸（声明提前，避免先赋值后声明的 TDZ 风险）
-  let blList = []; // 网站黑名单（域名后缀）
-  let wlMode = false; // 白名单模式
-  let wlList = [];    // 白名单（域名后缀）
+  let btnSize = 28;
+  let blList = [];
+  let wlMode = false;
+  let wlList = [];
 
   function clampMs(v, max) {
     v = Math.round(Number(v));
@@ -103,26 +103,10 @@
   async function loadContentSettings() {
     try {
       const s = await chrome.storage.sync.get({
-        hoverEnabled: true,
-        hoverDelay: 300,
+        ...DEFAULT_SETTINGS,
         allowWebdriverBar: false,
-        hideDelay: 300,
-        ysxBtnSize: 28,
-        barAlign: "center",
-        selectMode: "instant",
-      confirmPulse: true,
-        selColor: "#ffcc00",
-        statusBubble: true,
-        bubbleSize: 12.5,
-        enableSearchAll: false,
-        allBtnIcon: "∀",
-        allBtnColor: "#3a3f45",
-        infoCard: false,
         lang: "zh",
         theme: "light",
-        blacklist: "",
-        whitelistMode: false,
-        whitelist: "",
       });
       I18N.setLang(s.lang === "en" ? "en" : "zh");
       document.documentElement.dataset.ysxTheme = s.theme === "dark" ? "dark" : "light";
@@ -137,14 +121,14 @@
       selColor = /^#[0-9a-f]{6}$/i.test(s.selColor) ? s.selColor : "#ffcc00";
       statusBubbleOn = s.statusBubble !== false;
       bubbleSize = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));
-      searchAllOn = s.enableSearchAll !== false;
-      allBtnIcon = String(s.allBtnIcon || "全");
+      searchAllOn = s.enableSearchAll === true;
+      allBtnIcon = String(s.allBtnIcon || DEFAULT_SETTINGS.allBtnIcon);
       allBtnColor = /^#[0-9a-f]{6}$/i.test(s.allBtnColor) ? s.allBtnColor : "#3a3f45";
-      infoCardOn = s.infoCard !== false;
+      infoCardOn = s.infoCard === true;
       blList = parseBlacklist(s.blacklist);
       wlMode = s.whitelistMode === true;
       wlList = parseBlacklist(s.whitelist);
-    } catch (e) { /* keep defaults */ }
+    } catch (e) { }
     barEngines = null;
     if (!hoverEnabled || !barAllowedOnSite()) hideHoverBar();
     loadBarEngines().catch(() => {});
@@ -201,16 +185,16 @@
           ? changes.barAlign.newValue : "center";
       }
       if (changes.enableSearchAll) {
-        searchAllOn = changes.enableSearchAll.newValue !== false;
-        barEngines = null; // 重建图标条以增删「全」按钮
+        searchAllOn = changes.enableSearchAll.newValue === true;
+        barEngines = null;
       }
-      if (changes.infoCard) infoCardOn = changes.infoCard.newValue !== false;
+      if (changes.infoCard) infoCardOn = changes.infoCard.newValue === true;
       if (changes.bubbleSize) {
         bubbleSize = Math.min(28, Math.max(10, Number(changes.bubbleSize.newValue) || 12.5));
       }
       if (changes.allBtnIcon || changes.allBtnColor) {
         allBtnIcon = changes.allBtnIcon
-          ? String(changes.allBtnIcon.newValue || "全")
+          ? String(changes.allBtnIcon.newValue || DEFAULT_SETTINGS.allBtnIcon)
           : allBtnIcon;
         allBtnColor =
           changes.allBtnColor && /^#[0-9a-f]{6}$/i.test(changes.allBtnColor.newValue)
@@ -252,7 +236,7 @@
     warmed = true;
     try {
       sendMsg({ type: "ysx-warmup" });
-    } catch (e) { /* ignore */ }
+    } catch (e) { }
   }
 
   function pageZoomFactor() {
@@ -298,7 +282,7 @@
     try {
       const host = new URL(img.currentSrc || img.src || "").hostname;
       if (host) info += (info ? " · " : "") + host;
-    } catch (e) { /* ignore */ }
+    } catch (e) { }
     infoCard.textContent = info || "";
     const bar = document.getElementById("ysx-hover-bar");
     if (!bar || bar.style.display === "none") return;
@@ -378,7 +362,7 @@
             engineName: e.name,
             imgSrc: src,
           });
-        } catch (err) { /* ignore */ }
+        } catch (err) { }
         hideHoverBar();
       });
       bar.appendChild(b);
@@ -401,7 +385,7 @@
             names: engines.map((x) => x.name),
             imgSrc: src,
           });
-        } catch (err) { /* ignore */ }
+        } catch (err) { }
         hideHoverBar();
       });
       bar.appendChild(all);
@@ -423,7 +407,7 @@
       if (hoverBar) hoverBar.classList.remove("ysx-loading");
       try {
         sendMsg({ type: "ysx-search-upload", dataUrl });
-      } catch (e) { /* ignore */ }
+      } catch (e) { }
       hideHoverBar();
     };
 
@@ -492,7 +476,7 @@
       clearTimeout(showTimer);
       showTimer = null;
     }
-    if (searching) return; // 上传反馈期间不隐藏
+    if (searching) return;
     if (hideTimer) clearTimeout(hideTimer);
     if (hoverBar) hoverBar.style.display = "none";
     if (infoCard) infoCard.style.display = "none";
@@ -578,7 +562,7 @@
     dim.id = "ysx-dim";
     const sel = document.createElement("div");
     sel.id = "ysx-sel";
-    sel.style.borderColor = selColor; // 自定义选框颜色
+    sel.style.borderColor = selColor;
 
     overlay.appendChild(dim);
     overlay.appendChild(sel);
@@ -608,7 +592,7 @@
   function onMouseDown(e) {
     if (e.button !== 0) return;
     e.preventDefault();
-    warmupSW(); // 拖拽开始就唤醒后台，松开时上传免去冷启动
+    warmupSW();
     if (STATE.confirming) {
       STATE.confirming = false;
       const sel = document.getElementById("ysx-sel");

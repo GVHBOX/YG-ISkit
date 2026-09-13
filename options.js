@@ -2,7 +2,7 @@
 const rowsEl = document.getElementById("engineRows");
 const statusEl = document.getElementById("status");
 
-const ALL_BTN_DEFAULT_ICON = "∀";
+const ALL_BTN_DEFAULT_ICON = DEFAULT_SETTINGS.allBtnIcon;
 
 document.getElementById("verDisplay").textContent = "v" + chrome.runtime.getManifest().version;
 
@@ -285,7 +285,7 @@ document.getElementById("addEngine").addEventListener("click", () => {
   last.querySelector(".e-name").select();
 });
 
-let applyArmed = false; // 「恢复默认」两段式确认状态
+let applyArmed = false;
 let applyArmTimer = null;
 
 async function applyEngineList(list, sourceLabel) {
@@ -458,41 +458,7 @@ document.getElementById("selectMode").addEventListener("change", syncConfirmPuls
 const blRowsEl = document.getElementById("blRows");
 const wlRowsEl = document.getElementById("wlRows");
 
-const COMMON_SITES = ["google.com", "yandex.ru", "bing.com", "baidu.com", "saucenao.com", "ascii2d.net"];
-
-const DEFAULT_WHITELIST = COMMON_SITES.slice(0, 2).join("\n");
-
-const ALL_DEFAULTS = {
-  screenshotMenu: true,
-  barAlign: "center",
-  hoverEnabled: true,
-  hoverDelay: 300,
-  hideDelay: 300,
-  ysxBtnSize: 28,
-  openMode: "foreground",
-  uploadEngine: "yandex",
-  enableShotAll: false,
-  shotFormat: "jpeg",
-  shotQuality: 92,
-  selectMode: "instant",
-  confirmPulse: true,
-  selColor: "#ffcc00",
-  saveShot: false,
-  saveShotDir: DEFAULT_SAVE_DIR,
-  copyShot: false,
-  statusBubble: true,
-  bubbleSize: 12.5,
-  debugLogOn: false,
-  enableSearchAll: false,
-  infoCard: false,
-  whitelistMode: false,
-  whitelist: DEFAULT_WHITELIST,
-  allBtnIcon: ALL_BTN_DEFAULT_ICON,
-  allBtnColor: "#3a3f45",
-  historyEnabled: false,
-  historyKeep: 30,
-  blacklist: "",
-};
+const ALL_DEFAULTS = DEFAULT_SETTINGS;
 
 function wlRowHtml(domain) {
   return `<div class="engine-grid bl-grid bl-row">
@@ -531,7 +497,10 @@ document.getElementById("addCommonSites").addEventListener("click", () => {
 wlRowsEl.addEventListener("click", (e) => {
   if (e.target.classList.contains("bl-del")) {
     const row = e.target.closest(".bl-row");
-    if (row) row.remove();
+    if (row) {
+      row.remove();
+      markDirty();
+    }
   }
 });
 
@@ -563,7 +532,10 @@ document.getElementById("addBlack").addEventListener("click", () => {
 blRowsEl.addEventListener("click", (e) => {
   if (e.target.classList.contains("bl-del")) {
     const row = e.target.closest(".bl-row");
-    if (row) row.remove();
+    if (row) {
+      row.remove();
+      markDirty();
+    }
   }
 });
 
@@ -589,7 +561,7 @@ document.getElementById("resetDirBtn").addEventListener("click", () => {
   updateSaveDirPreview();
 });
 
-let downloadRoot = ""; // 检测到的浏览器下载目录绝对路径
+let downloadRoot = "";
 
 async function detectDownloadRoot() {
   try {
@@ -603,7 +575,7 @@ async function detectDownloadRoot() {
       const i = f.lastIndexOf(isWin ? "\\" : "/");
       downloadRoot = i >= 0 ? f.slice(0, i + 1) : "";
     }
-  } catch (e) { /* 无下载记录时拿不到 */ }
+  } catch (e) { }
   updateSaveDirPreview();
 }
 
