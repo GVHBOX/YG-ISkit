@@ -619,10 +619,7 @@ async function copyViaOffscreen(pngDataUrl) {
 }
 
 async function saveShotToDownloads(blob, format) {
-  const { saveShotDir = "", saveShotViaFs = false } = await chrome.storage.sync.get({
-    saveShotDir: "",
-    saveShotViaFs: false,
-  });
+  const { saveShotDir = "" } = await chrome.storage.sync.get({ saveShotDir: "" });
   const dir = cleanSaveDir(saveShotDir);
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
@@ -631,7 +628,6 @@ async function saveShotToDownloads(blob, format) {
     "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
   const ext = format === "png" ? "png" : "jpg";
   const dataUrl = await blobToDataUrl(blob);
-  if (saveShotViaFs && (await saveShotViaHandle(dataUrl, "ysx-" + stamp, ext))) return;
   const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
   if (!granted) {
     notify(I18N.t("extName"), I18N.t("dlPermMissing"));
@@ -647,20 +643,6 @@ async function saveShotToDownloads(blob, format) {
     filename: (dir ? dir + "/" : "") + "ysx-" + stamp + "." + ext,
     saveAs: false,
   });
-}
-
-async function saveShotViaHandle(dataUrl, stamp, ext) {
-  const resp = await sendOffscreen({ type: "ysx-offscreen-fs-save", dataUrl, base: stamp, ext });
-  if (resp && resp.ok) return true;
-  if (resp && resp.noHandle) {
-    await chrome.storage.sync.set({ saveShotViaFs: false });
-    return false;
-  }
-  if (resp && resp.needPermission) {
-    notify(I18N.t("extName"), I18N.t("fsPermLost"));
-    return false;
-  }
-  return false;
 }
 
 async function uploadToYandex(blob) {

@@ -13,7 +13,6 @@ function applyLang() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = I18N.t(el.dataset.i18n);
   });
-  document.getElementById("saveDirLabel").textContent = I18N.t(saveDirFs ? "saveFolder" : "saveSubfolder");
   document.title = I18N.t("extName");
   document.getElementById("langToggle").textContent = I18N.getLang() === "zh" ? "EN" : I18N.t("langSelf");
   renderHistory();
@@ -316,7 +315,6 @@ document.getElementById("resetEngines").addEventListener("click", async () => {
     const stored = await extractIconsToLib(engines);
     await pruneIconLib(stored);
     await chrome.storage.sync.set({ engines: stored, ...ALL_DEFAULTS });
-    await fsDelHandle();
     location.reload();
   } catch (e) {
     showStatus(I18N.t("resetFail") + ((e && e.message) || e), true);
@@ -541,131 +539,7 @@ blRowsEl.addEventListener("click", (e) => {
   }
 });
 
-let saveDirFs = false;
-
-function fsGetHandle() {
-  return new Promise((resolve) => {
-    let req;
-    try {
-      req = indexedDB.open("ysx-fsdb", 1);
-    } catch (e) {
-      resolve(null);
-      return;
-    }
-    req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains("handles")) req.result.createObjectStore("handles");
-    };
-    req.onerror = () => resolve(null);
-    req.onsuccess = () => {
-      const db = req.result;
-      let g;
-      try {
-        g = db.transaction("handles", "readonly").objectStore("handles").get("saveDir");
-      } catch (e) {
-        db.close();
-        resolve(null);
-        return;
-      }
-      g.onsuccess = () => {
-        db.close();
-        resolve(g.result || null);
-      };
-      g.onerror = () => {
-        db.close();
-        resolve(null);
-      };
-    };
-  });
-}
-
-function fsPutHandle(handle) {
-  return new Promise((resolve) => {
-    const req = indexedDB.open("ysx-fsdb", 1);
-    req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains("handles")) req.result.createObjectStore("handles");
-    };
-    req.onerror = () => resolve(false);
-    req.onsuccess = () => {
-      const db = req.result;
-      let tx;
-      try {
-        tx = db.transaction("handles", "readwrite");
-        tx.objectStore("handles").put(handle, "saveDir");
-      } catch (e) {
-        db.close();
-        resolve(false);
-        return;
-      }
-      tx.oncomplete = () => {
-        db.close();
-        resolve(true);
-      };
-      tx.onerror = () => {
-        db.close();
-        resolve(false);
-      };
-    };
-  });
-}
-
-function fsDelHandle() {
-  return new Promise((resolve) => {
-    const req = indexedDB.open("ysx-fsdb", 1);
-    req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains("handles")) req.result.createObjectStore("handles");
-    };
-    req.onerror = () => resolve(false);
-    req.onsuccess = () => {
-      const db = req.result;
-      let tx;
-      try {
-        tx = db.transaction("handles", "readwrite");
-        tx.objectStore("handles").delete("saveDir");
-      } catch (e) {
-        db.close();
-        resolve(false);
-        return;
-      }
-      tx.oncomplete = () => {
-        db.close();
-        resolve(true);
-      };
-      tx.onerror = () => {
-        db.close();
-        resolve(false);
-      };
-    };
-  });
-}
-
-function applySaveDirMode(fs) {
-  saveDirFs = fs;
-  const input = document.getElementById("saveShotDir");
-  input.readOnly = fs;
-  document.getElementById("saveDirLabel").textContent = I18N.t(fs ? "saveFolder" : "saveSubfolder");
-}
-
-document.getElementById("selectDirBtn").addEventListener("click", async () => {
-  try {
-    if (!window.showDirectoryPicker) {
-      showStatus(I18N.t("dirPickerUnsupported"));
-      return;
-    }
-    const handle = await window.showDirectoryPicker();
-    if (handle && handle.name) {
-      const stored = await fsPutHandle(handle);
-      applySaveDirMode(stored === true);
-      document.getElementById("saveShotDir").value = handle.name;
-      markDirty();
-      updateSaveDirPreview();
-    }
-  } catch (e) {
-  }
-});
-
 document.getElementById("resetDirBtn").addEventListener("click", () => {
-  applySaveDirMode(false);
-  fsDelHandle();
   document.getElementById("saveShotDir").value = DEFAULT_SAVE_DIR;
   markDirty();
   updateSaveDirPreview();
@@ -680,10 +554,16 @@ async function detectDownloadRoot() {
     );
     if (items.length && items[0].filename) {
       const isWin = navigator.userAgent.includes("Windows");
-      let f = items[0].filename;
-      if (isWin) f = f.replace(/\//g, "\\");
-      const i = f.lastIndexOf(isWin ? "\\" : "/");
-      downloadRoot = i >= 0 ? f.slice(0, i + 1) : "";
+      const sep = isWin ? "\\" : "/";
+      const f = isWin ? items[0].filename.replace(/\//g, sep) : items[0].filename;
+      const i = f.lastIndexOf(sep);
+      if (i >= 0) {
+        const segs = f.slice(0, i).split(sep);
+        const dir = cleanSaveDir(document.getElementById("saveShotDir").value);
+        if (dir && segs[segs.length - 1] === dir) segs.pop();
+        const root = segs.join(sep);
+        downloadRoot = root ? root + sep : "";
+      }
     }
   } catch (e) { }
   updateSaveDirPreview();
@@ -693,15 +573,12 @@ function updateSaveDirPreview() {
   const dirEl = document.getElementById("saveShotDir");
   const row = document.getElementById("saveDirPreviewRow");
   if (!row || row.style.display === "none") return;
-  if (saveDirFs) {
-    document.getElementById("saveDirPreview").textContent = "📁 " + (dirEl.value || "—");
-    return;
-  }
   const dir = cleanSaveDir(dirEl.value);
-  const root = downloadRoot || "";
-  const sep = downloadRoot ? (navigator.userAgent.includes("Windows") ? "\\" : "/") : "";
+  const isWin = navigator.userAgent.includes("Windows");
+  const sep = isWin ? "\\" : "/";
+  const root = (downloadRoot || "").replace(/[/\\]+$/, "");
   document.getElementById("saveDirPreview").textContent =
-    (downloadRoot ? "📁 " : "") + root + sep + (dir ? dir + sep : "");
+    root ? "📁 " + root + sep + (dir ? dir + sep : "") : dir;
 }
 
 document.getElementById("saveShotDir").addEventListener("input", updateSaveDirPreview);
@@ -804,7 +681,6 @@ document.getElementById("save").addEventListener("click", async () => {
     selColor: document.getElementById("selColorChip").dataset.color,
     saveShot: document.getElementById("saveShot").checked,
     saveShotDir: cleanSaveDir(document.getElementById("saveShotDir").value),
-    saveShotViaFs: saveDirFs === true,
     copyShot: document.getElementById("copyShot").checked,
     statusBubble: document.getElementById("statusBubble").checked,
     bubbleSize: Number(document.getElementById("bubbleSize").value) || 12.5,
@@ -942,7 +818,6 @@ const IMPORT_CHECKERS = {
   enableShotAll: Boolean, shotFormat: (v) => ["jpeg", "png"].includes(v),
   shotQuality: isFiniteNumber, selectMode: (v) => ["instant", "confirm"].includes(v),
   selColor: isHexColor, saveShot: Boolean, saveShotDir: (v) => typeof v === "string",
-  saveShotViaFs: Boolean,
   copyShot: Boolean, statusBubble: Boolean, bubbleSize: isFiniteNumber, debugLogOn: Boolean,
   enableSearchAll: Boolean, infoCard: Boolean, whitelistMode: Boolean,
   whitelist: (v) => typeof v === "string", blacklist: (v) => typeof v === "string",
@@ -1039,20 +914,8 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   syncConfirmPulseUi();
   document.getElementById("saveShot").checked = s.saveShot === true;
   document.getElementById("saveShotDir").value = String(s.saveShotDir || DEFAULT_SAVE_DIR);
-  if (s.saveShotViaFs === true) {
-    const h = await fsGetHandle();
-    if (h && h.name) {
-      applySaveDirMode(true);
-      document.getElementById("saveShotDir").value = h.name;
-    } else {
-      applySaveDirMode(false);
-      await chrome.storage.sync.set({ saveShotViaFs: false });
-    }
-  } else {
-    applySaveDirMode(false);
-  }
   let saveShotUi = s.saveShot === true;
-  if (saveShotUi && saveDirFs !== true) {
+  if (saveShotUi) {
     try {
       saveShotUi = await chrome.permissions.contains({ permissions: ["downloads"] });
     } catch (err) {
