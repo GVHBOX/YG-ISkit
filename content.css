@@ -1,0 +1,211 @@
+#ysx-hover-bar {
+  --ysx-size: 28px;
+  position: fixed;
+  z-index: 2147483646;
+  display: none;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #d9d9d9;
+  border-radius: calc(var(--ysx-size) / 2 + 5px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+:root[data-ysx-theme="dark"] #ysx-hover-bar {
+  background: rgba(34, 36, 40, 0.96);
+  border-color: #3d4148;
+}
+
+#ysx-ctx-menu {
+  position: fixed;
+  z-index: 2147483647;
+  min-width: 120px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  padding: 4px 0;
+  font: 13px/1.5 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+:root[data-ysx-theme="dark"] #ysx-ctx-menu {
+  background: rgba(34, 36, 40, 0.98);
+  border-color: #3d4148;
+}
+.ysx-ctx-item {
+  padding: 6px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #1f1f1f;
+}
+:root[data-ysx-theme="dark"] .ysx-ctx-item { color: #e8e8e8; }
+.ysx-ctx-item:hover { background: rgba(0, 0, 0, 0.06); }
+:root[data-ysx-theme="dark"] .ysx-ctx-item:hover { background: rgba(255, 255, 255, 0.1); }
+
+#ysx-info-card {
+  position: fixed;
+  z-index: 2147483646;
+  display: none;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(28, 30, 34, 0.85);
+  color: #fff;
+  font: 11.5px/1.5 ui-monospace, Consolas, monospace;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  white-space: nowrap;
+}
+:root[data-ysx-theme="dark"] #ysx-info-card {
+  background: rgba(10, 12, 14, 0.9);
+}
+
+.ysx-eng-btn {
+  width: var(--ysx-size);
+  height: var(--ysx-size);
+  border-radius: 50%;
+  background: #888;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 calc(var(--ysx-size) * 0.48)/1 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  overflow: hidden;
+  flex: none;
+}
+.ysx-eng-btn:hover {
+  transform: scale(1.15);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.9), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.ysx-eng-img {
+  width: calc(var(--ysx-size) * 0.62);
+  height: calc(var(--ysx-size) * 0.62);
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+#ysx-hover-bar.ysx-loading .ysx-eng-btn {
+  display: none;
+}
+#ysx-hover-bar.ysx-loading::after {
+  content: "";
+  width: var(--ysx-size);
+  height: var(--ysx-size);
+  border: 2px solid rgba(200, 200, 200, 0.5);
+  border-top-color: #FC3F1D;
+  border-radius: 50%;
+  animation: ysx-spin 0.7s linear infinite;
+}
+@keyframes ysx-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ysx-flash {
+  outline: 3px solid #ffcc00 !important;
+  outline-offset: 2px !important;
+}
+
+#ysx-status-bubble {
+  position: fixed;
+  z-index: 2147483647;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border-radius: 9px;
+  background: rgba(28, 30, 34, 0.93);
+  color: #fff;
+  font: 12.5px/1.4 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+  white-space: nowrap;
+}
+#ysx-status-bubble.ysx-show {
+  display: flex;
+}
+#ysx-status-bubble::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4a90d9;
+  flex: none;
+}
+#ysx-status-bubble[data-tone="busy"]::before {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #4a90d9;
+  animation: ysx-spin 0.7s linear infinite;
+}
+#ysx-status-bubble[data-tone="ok"]::before {
+  background: #35c759;
+}
+#ysx-status-bubble[data-tone="error"]::before {
+  background: #ff4d4f;
+}
+
+#ysx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  cursor: crosshair;
+}
+
+#ysx-dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#ysx-sel {
+  display: none;
+  position: fixed;
+  border: 1.5px solid #ffcc00;
+  background: rgba(255, 204, 0, 0.08);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+#ysx-sel.ysx-confirming {
+  animation: ysx-confirm-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ysx-confirm-pulse {
+  0%, 100% { border-color: #ffcc00; background: rgba(255, 204, 0, 0.08); }
+  50% { border-color: #ffffff; background: rgba(255, 204, 0, 0.16); }
+}
+
+#ysx-size-label {
+  display: none;
+  position: fixed;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font: 11.5px/1.5 ui-monospace, Consolas, monospace;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2147483647;
+}
+
+#ysx-hint {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2147483647;
+}

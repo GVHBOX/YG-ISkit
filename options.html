@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>GVH-以图搜图助手 - 选项</title>
+  <style>
+    :root {
+      --red: #d32f2f;
+      --bg: #f2f3f5;
+      --card-bg: #ffffff;
+      --card-border: #e8e8e8;
+      --text: #1f1f1f;
+      --muted: #999999;
+      --border: #dcdcdc;
+      --border-soft: #eeeeee;
+      --hover-bg: #f7f7f7;
+      --input-bg: #ffffff;
+      --accent: #ffcc00;
+      --accent-hover: #ffd633;
+      --green: #2a9d2a;
+      --row-alt: #fafbfc;
+    }
+    body.dark {
+      --red: #ef5350;
+      --bg: #17181a;
+      --card-bg: #222428;
+      --card-border: #33363b;
+      --text: #e8e8e8;
+      --muted: #8a8f98;
+      --border: #3d4148;
+      --border-soft: #2e3136;
+      --hover-bg: #2c2f34;
+      --input-bg: #1b1d20;
+      --accent: #ffcc00;
+      --accent-hover: #ffd633;
+      --green: #3cb371;
+      --row-alt: #26282d;
+    }
+    body {
+      font: 14px/1.6 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 32px 60px;
+      color: var(--text);
+      background: var(--bg);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    header { margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 20px; margin: 0; }
+    header .ver { color: var(--muted); font-size: 12.5px; }
+    header .spacer { flex: 1; }
+    .top-toggle {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-size: 12.5px;
+    }
+    .top-toggle:hover { background: var(--hover-bg); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    .card h2 {
+      font-size: 14.5px;
+      margin: 0 0 14px;
+      padding-left: 9px;
+      border-left: 3px solid var(--accent);
+      line-height: 1.3;
+    }
+
+    .engine-grid {
+      display: grid;
+      grid-template-columns: 24px 26px 150px 110px 42px 1fr 26px 26px 22px;
+      gap: 8px;
+      align-items: center;
+    }
+    .engine-head {
+      color: var(--muted); font-size: 12px; margin-bottom: 4px;
+      padding: 6px 8px;
+      background: var(--hover-bg);
+      border-radius: 7px;
+      border-bottom: 1px solid var(--border);
+    }
+    .engine-row { margin: 4px 0; padding: 3px 8px; border-radius: 8px; }
+    .engine-row:nth-child(even) { background: var(--row-alt); }
+    .engine-row:hover { background: var(--hover-bg); }
+    .engine-head span, .engine-head .h-url { text-align: center; }
+    .engine-head .h-url { text-align: left; padding-left: 4px; }
+    .engine-head .h-del { text-align: center; }
+    .engine-row input[type="checkbox"] { width: 15px; height: 15px; display: block; margin: 0 auto; }
+    .engine-row .e-num { text-align: center; color: var(--muted); font-size: 12.5px; }
+    .engine-row input[type="text"], .bl-row input[type="text"],
+    select.ctl, input.num, textarea {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .engine-row input[type="text"], .bl-row input[type="text"] {
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .engine-row input.e-icon { text-align: center; padding: 6px 2px; }
+    .engine-row .e-icon-wrap { display: flex; align-items: center; gap: 4px; }
+    .engine-row .e-icon-url { width: 100%; font-size: 11.5px; padding: 4px 6px; }
+    .engine-row .e-icon-upload {
+      width: 26px; height: 30px; flex: none; border: 1px solid var(--border);
+      background: var(--input-bg); border-radius: 6px; cursor: pointer; font-size: 13px;
+    }
+    .engine-row .e-icon-upload:hover { background: var(--hover-bg); }
+    .engine-row .e-icon-img {
+      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      border: 1px solid var(--border); background: var(--input-bg);
+      cursor: pointer; display: none;
+    }
+    .engine-row .e-url, .bl-row input[type="text"] { font-family: ui-monospace, Consolas, monospace; }
+    .e-url.expanded {
+      position: relative; z-index: 5; width: 100%;
+      grid-column: 1 / -1;
+      font-size: 12.5px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    .engine-row .e-move {
+      width: 24px; height: 30px; border: 1px solid var(--border); background: var(--input-bg);
+      border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text); padding: 0;
+    }
+    .engine-row .e-move:hover:not(:disabled) { background: var(--hover-bg); }
+    .engine-row .e-move:disabled { opacity: 0.3; cursor: default; }
+    .engine-row .e-del {
+      border: none; background: none; color: #d33; font-size: 16px;
+      cursor: pointer; padding: 0; width: 20px; height: 30px;
+    }
+    .table-actions { margin-top: 12px; display: flex; gap: 10px; }
+    .btn {
+      padding: 6px 14px; border: 1px solid var(--border); background: var(--input-bg);
+      border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text);
+    }
+    .btn:hover { background: var(--hover-bg); }
+
+    .opt-row { display: flex; align-items: center; gap: 14px; margin: 12px 0; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+    .opt-row label.main { width: 130px; flex: none; }
+    select.ctl, input.num, textarea {
+      padding: 6px 9px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+    input.num { width: 90px; cursor: text; }
+    input.num:focus, select.ctl:focus, textarea:focus, .engine-row input:focus { outline: 2px solid #ffe27a; border-color: #e6b800; }
+    .unit { color: var(--muted); font-size: 12.5px; }
+    input[type="range"] { flex: 1; cursor: pointer; }
+    #sizeVal { min-width: 46px; text-align: right; color: var(--muted); font-size: 13px; }
+    #qualityVal { color: var(--muted); font-size: 12.5px; }
+    .switch { position: relative; width: 40px; height: 22px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider {
+      position: absolute; inset: 0; background: #888; border-radius: 22px;
+      transition: background .15s; cursor: pointer;
+    }
+    .switch .slider::before {
+      content: ""; position: absolute; width: 18px; height: 18px;
+      left: 2px; top: 2px; background: #fff; border-radius: 50%;
+      transition: transform .15s; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    }
+    .switch input:checked + .slider { background: var(--green); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+
+    .e-color-chip {
+      width: 100%;
+      height: 31px;
+      border-radius: 6px;
+      border: 1px solid rgba(128, 128, 128, 0.35);
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35);
+    }
+    .e-color-chip:hover { border-color: #999; }
+    #palette {
+      position: fixed;
+      z-index: 99999;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+      padding: 10px;
+      display: none;
+      width: 224px;
+    }
+    #palette .p-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+    #palette .p-swatch {
+      width: 22px; height: 22px; border-radius: 5px; cursor: pointer;
+      border: 1px solid rgba(128, 128, 128, 0.25);
+    }
+    #palette .p-swatch:hover { transform: scale(1.15); }
+    #palette .p-custom {
+      display: flex; align-items: center; gap: 8px; margin-top: 9px;
+      padding-top: 9px; border-top: 1px solid var(--border-soft);
+      font-size: 12.5px; color: var(--muted);
+    }
+    #palette .p-custom input[type="color"] {
+      width: 40px; height: 26px; padding: 1px;
+      border: 1px solid var(--border); border-radius: 5px;
+      background: var(--input-bg); cursor: pointer;
+    }
+
+    .bl-grid { grid-template-columns: 1fr 24px 20px; }
+    .bl-row { margin: 4px 0; }
+    .bl-row .bl-del {
+      border: none; background: none; color: #d33; font-size: 15px;
+      cursor: pointer; padding: 0; width: 20px; height: 30px;
+    }
+    .bl-row .e-move { display: none; }
+
+    .bar-preview {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 14px; background: var(--hover-bg);
+      border: 1px dashed var(--border); border-radius: 8px;
+      min-height: 84px; overflow: hidden;
+    }
+    .pv-bar {
+      display: flex; gap: 4px; padding: 4px;
+      background: #fff; border: 1px solid #ddd;
+      border-radius: calc(var(--size) / 2 + 5px);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+      --size: 28px;
+    }
+    .pv-btn {
+      width: var(--size); height: var(--size); border-radius: 50%; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font: 600 calc(var(--size) * 0.48)/1 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+    }
+
+    .shortcut-box { display: flex; align-items: center; gap: 12px; }
+    .shortcut-key {
+      font-family: ui-monospace, Consolas, monospace; font-size: 14px; font-weight: 600;
+      background: var(--hover-bg); border: 1px solid var(--border); border-bottom-width: 2.5px;
+      border-radius: 6px; padding: 4px 14px;
+    }
+
+    #logView {
+      margin: 0; max-height: 200px; overflow: auto;
+      background: #1e1e1e; color: #d4d4d4;
+      font: 11.5px/1.6 ui-monospace, Consolas, monospace;
+      border-radius: 8px; padding: 10px;
+      white-space: pre-wrap; word-break: break-all;
+    }
+
+    #historyList {
+      margin-top: 8px; max-height: 280px; overflow: auto;
+      border: 1px solid var(--border-soft); border-radius: 8px;
+    }
+    .h-item {
+      display: flex; align-items: center; gap: 10px; padding: 6px 12px;
+      border-bottom: 1px solid var(--border-soft); font-size: 12.5px;
+    }
+    .h-item:last-child { border-bottom: none; }
+    .h-time { color: var(--muted); font-family: ui-monospace, Consolas, monospace; flex: none; }
+    .h-type { flex: none; padding: 1px 8px; border-radius: 9px; font-size: 11px; }
+    .t-shot { background: rgba(255, 204, 0, 0.2); color: #b8860b; }
+    .t-img { background: rgba(33, 150, 243, 0.18); color: #42a5f5; }
+    .h-eng { flex: none; width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .h-link { margin-left: auto; color: #42a5f5; text-decoration: none; flex: none; }
+    .h-link:hover { text-decoration: underline; }
+    .h-empty { padding: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+
+    #statsBlock h3 {
+      font-size: 13px; margin: 0 0 8px; color: var(--muted);
+    }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-card {
+      border: 1px solid var(--border-soft); border-radius: 8px; padding: 10px 12px;
+    }
+    .stat-card h4 { font-size: 12px; margin: 0 0 8px; color: var(--muted); }
+    .stat-nums { font-size: 13px; display: flex; gap: 14px; margin-bottom: 8px; }
+    .stat-nums b { color: var(--text); }
+    .stat-bar-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 12px; }
+    .stat-bar-label { width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+    .stat-bar-track { flex: 1; height: 10px; background: var(--hover-bg); border-radius: 5px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; background: var(--accent); border-radius: 5px; min-width: 2px; }
+    .stat-bar-val { width: 34px; text-align: right; color: var(--muted); font-size: 11.5px; }
+
+    .save-bar {
+      display: flex; align-items: center; gap: 12px; margin-top: 4px;
+      position: sticky; bottom: 0; padding: 10px 0;
+      background: var(--bg); border-top: 1px solid var(--border-soft);
+    }
+    .preset-bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-soft); }
+    #save {
+      padding: 9px 30px; border: none; border-radius: 8px; cursor: pointer;
+      background: var(--accent); color: #1f1f1f; font-weight: 600; font-size: 14px;
+    }
+    #save:hover { background: var(--accent-hover); }
+    #status { color: var(--green); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 data-i18n="extName"></h1>
+    <span class="ver" id="verDisplay"></span>
+    <span class="spacer"></span>
+    <button class="top-toggle" id="langToggle" type="button">EN</button>
+    <button class="top-toggle" id="themeToggle" type="button">🌙</button>
+    <a class="top-toggle" id="githubLink" href="https://github.com/GVHBOX/image-search-assistant" target="_blank" rel="noreferrer" title="GitHub" style="display:flex;align-items:center;text-decoration:none;">
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+  </header>
+
+  <section class="card">
+    <h2 data-i18n="engines"></h2>
+    <div class="engine-grid engine-head">
+      <span>#</span>
+      <span data-i18n="enable"></span>
+      <span data-i18n="icon"></span>
+      <span data-i18n="name"></span>
+      <span data-i18n="color"></span>
+      <span class="h-url" data-i18n="urlTemplate"></span>
+      <span style="grid-column: 7 / 9;" data-i18n="order"></span>
+      <span class="h-del"></span>
+    </div>
+    <div id="engineRows"></div>
+    <div class="table-actions">
+      <button id="addEngine" type="button" class="btn" data-i18n="addEngine"></button>
+      <button id="resetEngines" type="button" class="btn" data-i18n="resetEngines"></button>
+    </div>
+    <div class="preset-bar">
+      <span style="font-size: 12.5px; color: var(--muted);" data-i18n="presetLabel"></span>
+      <select id="presetSelect" class="ctl" style="flex: 1; min-width: 120px;"></select>
+      <input type="text" id="presetName" class="ctl" style="width: 110px; cursor: text;" placeholder="">
+      <button id="presetSave" type="button" class="btn" data-i18n="presetSaveAs"></button>
+      <button id="presetDelete" type="button" class="btn" data-i18n="presetDelete"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="shortcut"></h2>
+    <div class="shortcut-box">
+      <span data-i18n="captureShortcut"></span>
+      <span class="shortcut-key" id="shortcutDisplay"></span>
+      <button id="openShortcuts" type="button" class="btn" data-i18n="change"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="hoverBar"></h2>
+    <div class="opt-row">
+      <label class="main" data-i18n="enable"></label>
+      <label class="switch"><input type="checkbox" id="hoverEnabled"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="buttonSize"></label>
+      <input type="range" id="btnSize" min="20" max="64" step="2" value="28">
+      <span id="sizeVal">28 px</span>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="preview"></label>
+      <div id="barPreview" class="bar-preview"></div>
+    </div>
+    <div class="row2">
+      <div class="opt-row">
+        <label class="main" data-i18n="showDelay"></label>
+        <input type="number" id="hoverDelay" class="num" min="0" max="3000" step="10" value="0">
+        <span class="unit" data-i18n="msShow"></span>
+      </div>
+      <div class="opt-row">
+        <label class="main" data-i18n="hideDelay"></label>
+        <input type="number" id="hideDelay" class="num" min="0" max="5000" step="10" value="300">
+        <span class="unit" data-i18n="msHide"></span>
+      </div>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="position"></label>
+      <select id="barAlign" class="ctl">
+        <option value="center" data-i18n="posCenter"></option>
+        <option value="left" data-i18n="posLeft"></option>
+        <option value="right" data-i18n="posRight"></option>
+      </select>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="allMode"></label>
+      <label class="switch"><input type="checkbox" id="enableSearchAll"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="infoCard"></label>
+      <label class="switch"><input type="checkbox" id="infoCard"><span class="slider"></span></label>
+    </div>
+    <div id="allBtnCustomRow" style="display: none;">
+      <div class="row2">
+        <div class="opt-row">
+          <label class="main" data-i18n="allBtnIcon"></label>
+          <input type="text" id="allBtnIcon" class="num" maxlength="2" value="全" style="width: 70px; text-align: center;">
+        </div>
+        <div class="opt-row">
+          <label class="main" data-i18n="allBtnColor"></label>
+          <div class="e-color-chip" id="allBtnColorChip" data-color="#3a3f45" title="Click"></div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="whitelistSwitch"></label>
+      <label class="switch"><input type="checkbox" id="whitelistMode"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row" style="align-items: flex-start; display: block;">
+      <label class="main" style="display: block; margin-bottom: 8px;" data-i18n="whitelist"></label>
+      <div class="engine-grid bl-grid engine-head">
+        <span style="grid-column: 1 / 4; text-align: left; padding-left: 4px;" data-i18n="domain"></span>
+        <span style="grid-column: 4 / 6;"></span>
+        <span class="h-del"></span>
+      </div>
+      <div id="wlRows"></div>
+      <div class="table-actions">
+        <button id="addWhitelist" type="button" class="btn" data-i18n="addSite"></button>
+        <button id="addCommonSites" type="button" class="btn" data-i18n="addCommonSites"></button>
+      </div>
+    </div>
+    <div class="opt-row" style="align-items: flex-start; display: block;">
+      <label class="main" style="display: block; margin-bottom: 8px;" data-i18n="blacklist"></label>
+      <div class="engine-grid bl-grid engine-head">
+        <span style="grid-column: 1 / 4; text-align: left; padding-left: 4px;" data-i18n="domain"></span>
+        <span style="grid-column: 4 / 6;"></span>
+        <span class="h-del"></span>
+      </div>
+      <div id="blRows"></div>
+      <div class="table-actions">
+        <button id="addBlack" type="button" class="btn" data-i18n="addSite"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="captureSection"></h2>
+    <div class="opt-row">
+      <label class="main" data-i18n="uploadEngine"></label>
+      <select id="uploadEngine" class="ctl">
+        <option value="yandex">Yandex</option>
+        <option value="google">Google Lens</option>
+      </select>
+    </div>
+    <div class="opt-row" id="shotAllHintRow" style="display: none;">
+      <label class="main"></label>
+      <span id="shotAllHint" style="flex: 1; font-size: 12px; color: var(--muted);"></span>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="shotAllMode"></label>
+      <label class="switch"><input type="checkbox" id="enableShotAll"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="shotFormat"></label>
+      <select id="shotFormat" class="ctl" style="width: 110px;">
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG</option>
+      </select>
+      <input type="range" id="shotQuality" min="10" max="100" step="5" value="92" style="flex: 1;">
+      <span id="qualityVal">92</span>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="selectConfirm"></label>
+      <select id="selectMode" class="ctl">
+        <option value="instant" data-i18n="confirmInstant"></option>
+        <option value="confirm" data-i18n="confirmEnter"></option>
+      </select>
+    </div>
+    <div class="opt-row" id="confirmPulseRow">
+      <label class="main" data-i18n="confirmPulse"></label>
+      <label class="switch"><input type="checkbox" id="confirmPulse"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="selColor"></label>
+      <div class="e-color-chip" id="selColorChip" data-color="#ffcc00" title="Click"></div>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="autoSave"></label>
+      <label class="switch"><input type="checkbox" id="saveShot"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row" id="saveDirRow" style="display: none;">
+      <label class="main" data-i18n="saveSubfolder"></label>
+      <input type="text" id="saveShotDir" class="ctl" style="flex: 1; cursor: text;">
+      <button id="selectDirBtn" type="button" class="btn" title="Choose">📂</button>
+      <button id="resetDirBtn" type="button" class="btn" data-i18n="dirReset"></button>
+    </div>
+    <div class="opt-row" id="saveDirPreviewRow" style="display: none;">
+      <label class="main"></label>
+      <div id="saveDirPreview" style="flex: 1; padding: 6px 9px; border: 1px dashed var(--border); border-radius: 7px; font: 12.5px/1.5 ui-monospace, Consolas, monospace; color: var(--text); user-select: all; word-break: break-all; background: var(--hover-bg);"></div>
+    </div>
+    <div class="row2">
+      <div class="opt-row">
+        <label class="main" data-i18n="copyClipboard"></label>
+        <label class="switch"><input type="checkbox" id="copyShot"><span class="slider"></span></label>
+      </div>
+      <div class="opt-row">
+        <label class="main" data-i18n="progressBubble"></label>
+        <label class="switch"><input type="checkbox" id="statusBubble"><span class="slider"></span></label>
+      </div>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="debugLog"></label>
+      <label class="switch"><input type="checkbox" id="debugLogOn"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row" id="debugLogRow" style="display: none; align-items: flex-start;">
+      <label class="main" style="padding-top: 4px;" data-i18n="log"></label>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+        <pre id="logView"></pre>
+        <button id="copyLog" type="button" class="btn" style="align-self: flex-start;" data-i18n="copyAllLogs"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="searchBehavior"></h2>
+    <div class="row2">
+      <div class="opt-row">
+        <label class="main" data-i18n="ctxMenuCapture"></label>
+        <label class="switch"><input type="checkbox" id="screenshotMenu"><span class="slider"></span></label>
+      </div>
+      <div class="opt-row">
+        <label class="main" data-i18n="openResultsIn"></label>
+        <select id="openMode" class="ctl">
+          <option value="foreground" data-i18n="newTabFore"></option>
+          <option value="background" data-i18n="newTabBack"></option>
+          <option value="current" data-i18n="currentTab"></option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="history"></h2>
+    <div class="opt-row">
+      <label class="main" data-i18n="recordHistory"></label>
+      <label class="switch"><input type="checkbox" id="historyEnabled"><span class="slider"></span></label>
+    </div>
+    <div class="opt-row">
+      <label class="main" data-i18n="autoClean"></label>
+      <select id="historyKeep" class="ctl">
+        <option value="7" data-i18n="keep7"></option>
+        <option value="30" data-i18n="keep30"></option>
+        <option value="90" data-i18n="keep90"></option>
+        <option value="0" data-i18n="keepForever"></option>
+      </select>
+      <button id="clearHistory" type="button" class="btn" data-i18n="clearNow"></button>
+    </div>
+    <div id="historyList"></div>
+    <div id="statsBlock" style="margin-top: 14px;"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="backup"></h2>
+    <div class="shortcut-box">
+      <button id="exportSettings" type="button" class="btn" data-i18n="exportSettings"></button>
+      <button id="importSettings" type="button" class="btn" data-i18n="importSettings"></button>
+      <input type="file" id="importFile" accept="application/json,.json" style="display: none;">
+    </div>
+  </section>
+
+  <div class="save-bar">
+    <button id="save" type="button" data-i18n="save"></button>
+    <span id="status"></span>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="defaults.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
