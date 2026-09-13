@@ -338,14 +338,18 @@ async function applyEngineList(list, sourceLabel) {
 }
 
 document.getElementById("resetEngines").addEventListener("click", async () => {
-  const applied = await applyEngineList(DEFAULT_ENGINES.map((e) => ({ ...e })), I18N.t("resetDone"));
-  if (!applied) return;
-  const engines = getEnginesFromUI();
-  const stored = await extractIconsToLib(engines);
-  await pruneIconLib(stored);
-  await chrome.storage.sync.set({ engines: stored });
-  clearDirty();
-  showStatus(I18N.t("resetDone"));
+  try {
+    const applied = await applyEngineList(DEFAULT_ENGINES.map((e) => ({ ...e })), I18N.t("resetDone"));
+    if (!applied) return;
+    const engines = getEnginesFromUI();
+    const stored = await extractIconsToLib(engines);
+    await pruneIconLib(stored);
+    await chrome.storage.sync.set({ engines: stored });
+    clearDirty();
+    showStatus(I18N.t("resetDone"));
+  } catch (e) {
+    showStatus(I18N.t("resetFail") + ((e && e.message) || e), true);
+  }
 });
 
 document.getElementById("presetSave").addEventListener("click", async () => {
