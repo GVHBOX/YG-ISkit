@@ -592,7 +592,17 @@ function updateSaveDirPreview() {
 
 document.getElementById("saveShotDir").addEventListener("input", updateSaveDirPreview);
 
-document.getElementById("saveShot").addEventListener("change", (e) => {
+document.getElementById("saveShot").addEventListener("change", async (e) => {
+  if (e.target.checked) {
+    let granted = false;
+    try {
+      granted = await chrome.permissions.request({ permissions: ["downloads"] });
+    } catch (err) { }
+    if (!granted) {
+      e.target.checked = false;
+      showStatus(I18N.t("dlPermDenied"), true);
+    }
+  }
   document.getElementById("saveDirRow").style.display = e.target.checked ? "flex" : "none";
   document.getElementById("saveDirPreviewRow").style.display = e.target.checked ? "flex" : "none";
 });
@@ -913,8 +923,20 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   syncConfirmPulseUi();
   document.getElementById("saveShot").checked = s.saveShot === true;
   document.getElementById("saveShotDir").value = String(s.saveShotDir || DEFAULT_SAVE_DIR);
-  document.getElementById("saveDirRow").style.display = s.saveShot === true ? "flex" : "none";
-  document.getElementById("saveDirPreviewRow").style.display = s.saveShot === true ? "flex" : "none";
+  let saveShotUi = s.saveShot === true;
+  if (saveShotUi) {
+    try {
+      saveShotUi = await chrome.permissions.contains({ permissions: ["downloads"] });
+    } catch (err) {
+      saveShotUi = false;
+    }
+    if (!saveShotUi) {
+      document.getElementById("saveShot").checked = false;
+      showStatus(I18N.t("dlPermDenied"), true);
+    }
+  }
+  document.getElementById("saveDirRow").style.display = saveShotUi ? "flex" : "none";
+  document.getElementById("saveDirPreviewRow").style.display = saveShotUi ? "flex" : "none";
   document.getElementById("copyShot").checked = s.copyShot === true;
   document.getElementById("statusBubble").checked = s.statusBubble !== false;
   document.getElementById("bubbleSize").value = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));

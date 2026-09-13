@@ -622,6 +622,11 @@ async function copyViaOffscreen(pngDataUrl) {
 }
 
 async function saveShotToDownloads(blob, format) {
+  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
+  if (!granted) {
+    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
+    return;
+  }
   const { saveShotDir = "" } = await chrome.storage.sync.get({ saveShotDir: "" });
   const dir = cleanSaveDir(saveShotDir);
   const d = new Date();
