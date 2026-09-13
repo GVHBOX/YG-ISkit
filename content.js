@@ -12,6 +12,8 @@
   let showTimer = null;
   let searching = false;
   let searchingTimer = null;
+  let pausedVideos = [];
+  let resumeTimer = null;
   let warmed = false;
   let hoverEnabled = true;
   let hoverDelay = 0;
@@ -529,8 +531,35 @@
     }
   }
 
+  function pausePlayingVideos() {
+    document.querySelectorAll("video").forEach((v) => {
+      if (!v.paused && !v.ended && !pausedVideos.includes(v)) {
+        try {
+          v.pause();
+          pausedVideos.push(v);
+        } catch (e) {}
+      }
+    });
+  }
+
+  function resumeVideos() {
+    if (resumeTimer) {
+      clearTimeout(resumeTimer);
+      resumeTimer = null;
+    }
+    const list = pausedVideos;
+    pausedVideos = [];
+    list.forEach((v) => {
+      try {
+        const p = v.play();
+        if (p && p.catch) p.catch(() => {});
+      } catch (e) {}
+    });
+  }
+
   function startSelection() {
     if (STATE.selecting) return;
+    pausePlayingVideos();
     hideHoverBar();
 
     const overlay = document.createElement("div");
@@ -657,6 +686,8 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     cleanup();
+    if (resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(resumeVideos, 10000);
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         sendMsg({
@@ -669,6 +700,7 @@
 
   function cancel() {
     cleanup();
+    resumeVideos();
   }
 
   function cleanup() {
@@ -831,8 +863,14 @@
       sendResponse({ status: "capturing" });
       return true;
     }
+    if (msg.type === "ysx-capture-done") {
+      resumeVideos();
+      sendResponse({ ok: true });
+      return;
+    }
     if (msg.type === "ysx-status") {
       showStatusBubble(String(msg.text || ""), msg.tone);
+      if (msg.tone === "error") resumeVideos();
       sendResponse({ ok: true });
       return;
     }

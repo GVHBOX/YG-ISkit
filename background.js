@@ -266,6 +266,14 @@ function sendStatus(tabId, text, tone) {
   } catch (e) { /* content script 不存在时静默 */ }
 }
 
+function sendCaptureDone(tabId) {
+  if (tabId == null) return;
+  try {
+    const resp = chrome.tabs.sendMessage(tabId, { type: "ysx-capture-done" });
+    if (resp && resp.catch) resp.catch(() => {});
+  } catch (e) {}
+}
+
 async function startCapture(tabId, source) {
   let tab;
   try {
@@ -357,10 +365,15 @@ async function captureAndSearch(tabId, rect) {
     const tab = await chrome.tabs.get(tabId);
     const format = settings.shotFormat === "png" ? "png" : "jpeg";
     const quality = Math.min(100, Math.max(10, Number(settings.shotQuality) || 92));
-    const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-      format,
-      quality: format === "jpeg" ? quality : undefined,
-    });
+    let dataUrl;
+    try {
+      dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
+        format,
+        quality: format === "jpeg" ? quality : undefined,
+      });
+    } finally {
+      sendCaptureDone(tabId);
+    }
     let blob;
     if (rect) {
       blob = await cropFromDataUrl(dataUrl, rect, format, quality);
