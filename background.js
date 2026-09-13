@@ -328,7 +328,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg && msg.type === "ysx-search-upload") {
-    if (msg.dataUrl) {
+    if (msg.dataUrl && /^data:image\//i.test(msg.dataUrl)) {
       searchByUpload(msg.dataUrl)
         .then(() => sendResponse({ ok: true }))
         .catch(() => {});

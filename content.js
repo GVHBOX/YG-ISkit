@@ -147,10 +147,10 @@
     } catch (e) { /* keep defaults */ }
     barEngines = null;
     if (!hoverEnabled || !barAllowedOnSite()) hideHoverBar();
-    loadBarEngines();
+    loadBarEngines().catch(() => {});
   }
 
-  loadContentSettings();
+  loadContentSettings().catch(() => {});
 
   chrome.storage.onChanged.addListener((changes, area) => {
     try {
@@ -341,7 +341,7 @@
 
     let engines = barEngines;
     if (!engines) {
-      loadBarEngines();
+      loadBarEngines().catch(() => {});
       return;
     }
 
@@ -453,9 +453,8 @@
     if (!src) return;
 
     const bar = ensureBar();
-    const sig = src.slice(0, 120);
-    if (!barEngines || bar.dataset.src !== sig) {
-      bar.dataset.src = sig;
+    if (!barEngines || bar.dataset.src !== src) {
+      bar.dataset.src = src;
       buildBarButtons(src);
     }
 
@@ -559,6 +558,10 @@
 
   function startSelection() {
     if (STATE.selecting) return;
+    if (resumeTimer) {
+      clearTimeout(resumeTimer);
+      resumeTimer = null;
+    }
     pausePlayingVideos();
     hideHoverBar();
 
@@ -864,7 +867,7 @@
       return true;
     }
     if (msg.type === "ysx-capture-done") {
-      resumeVideos();
+      if (!STATE.selecting) resumeVideos();
       sendResponse({ ok: true });
       return;
     }

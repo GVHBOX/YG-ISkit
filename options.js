@@ -495,6 +495,7 @@ rowsEl.addEventListener("input", (e) => {
     img.src = v;
     img.style.display = "inline-block";
   } else {
+    img.removeAttribute("src");
     img.style.display = "none";
   }
   markDirty();
