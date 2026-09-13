@@ -6,7 +6,7 @@ const ALL_BTN_DEFAULT_ICON = "∀";
 
 document.getElementById("verDisplay").textContent = "v" + chrome.runtime.getManifest().version;
 
-const GITHUB_REPO = "https://github.com/GVHBOX/image-search-assistant";
+const GITHUB_REPO = "https://github.com/GVHBOX/YG-ISkit";
 document.getElementById("githubLink").href = GITHUB_REPO;
 
 function applyLang() {
