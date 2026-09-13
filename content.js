@@ -16,7 +16,8 @@
   let resumeTimer = null;
   let warmed = false;
   let hoverEnabled = true;
-  let hoverDelay = 0;
+  let hoverDelay = 300;
+  let allowWebdriverBar = false;
   let hideDelay = 300; // 离开图片后图标条延迟消失（ms）
   let barAlign = "center"; // 图标条对齐：left / center / right
   let selectMode = "instant"; // instant | confirm
@@ -92,6 +93,7 @@
   }
 
   function barAllowedOnSite() {
+    if (navigator.webdriver && !allowWebdriverBar) return false;
     if (inBlacklist()) return false;
     if (wlMode && !inWhitelist()) return false;
     return true;
@@ -108,7 +110,8 @@
     try {
       const s = await chrome.storage.sync.get({
         hoverEnabled: true,
-        hoverDelay: 0,
+        hoverDelay: 300,
+        allowWebdriverBar: false,
         hideDelay: 300,
         ysxBtnSize: 28,
         barAlign: "center",
@@ -129,6 +132,7 @@
       I18N.setLang(s.lang === "en" ? "en" : "zh");
       document.documentElement.dataset.ysxTheme = s.theme === "dark" ? "dark" : "light";
       hoverEnabled = s.hoverEnabled !== false;
+      allowWebdriverBar = s.allowWebdriverBar === true;
       hoverDelay = clampMs(s.hoverDelay, 3000);
       hideDelay = clampMs(s.hideDelay, 5000);
       btnSize = Math.min(64, Math.max(20, Number(s.ysxBtnSize) || 28));
@@ -159,6 +163,10 @@
       if (changes.hoverEnabled) {
         hoverEnabled = changes.hoverEnabled.newValue !== false;
         if (!hoverEnabled) hideHoverBar();
+      }
+      if (changes.allowWebdriverBar) {
+        allowWebdriverBar = changes.allowWebdriverBar.newValue === true;
+        if (navigator.webdriver && !allowWebdriverBar) hideHoverBar();
       }
       if (changes.blacklist) {
         blList = parseBlacklist(changes.blacklist.newValue);

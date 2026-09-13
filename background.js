@@ -51,7 +51,7 @@ async function getSettings() {
     screenshotMenu: true,
     barAlign: "center",
     hoverEnabled: true,
-    hoverDelay: 0,
+    hoverDelay: 300,
     hideDelay: 300,
     ysxBtnSize: 28,
     openMode: "foreground",
