@@ -324,7 +324,7 @@ async function applyEngineList(list, sourceLabel) {
     showStatus(I18N.t("presetApplyConfirm") + " — " + I18N.t("presetConfirmSave"));
     clearTimeout(applyArmTimer);
     applyArmTimer = setTimeout(() => { applyArmed = false; }, 4000);
-    return;
+    return false;
   }
   applyArmed = false;
   clearTimeout(applyArmTimer);
@@ -334,10 +334,18 @@ async function applyEngineList(list, sourceLabel) {
   renderEngines(hydrated);
   markDirty();
   showStatus(sourceLabel);
+  return true;
 }
 
-document.getElementById("resetEngines").addEventListener("click", () => {
-  applyEngineList(DEFAULT_ENGINES.map((e) => ({ ...e })), I18N.t("resetDone"));
+document.getElementById("resetEngines").addEventListener("click", async () => {
+  const applied = await applyEngineList(DEFAULT_ENGINES.map((e) => ({ ...e })), I18N.t("resetDone"));
+  if (!applied) return;
+  const engines = getEnginesFromUI();
+  const stored = await extractIconsToLib(engines);
+  await pruneIconLib(stored);
+  await chrome.storage.sync.set({ engines: stored });
+  clearDirty();
+  showStatus(I18N.t("resetDone"));
 });
 
 document.getElementById("presetSave").addEventListener("click", async () => {
@@ -733,6 +741,7 @@ document.getElementById("save").addEventListener("click", async () => {
     saveShotDir: cleanSaveDir(document.getElementById("saveShotDir").value),
     copyShot: document.getElementById("copyShot").checked,
     statusBubble: document.getElementById("statusBubble").checked,
+    bubbleSize: Number(document.getElementById("bubbleSize").value) || 12.5,
     debugLogOn: document.getElementById("debugLogOn").checked,
     enableSearchAll: document.getElementById("enableSearchAll").checked,
     infoCard: document.getElementById("infoCard").checked,
@@ -867,7 +876,7 @@ const IMPORT_CHECKERS = {
   enableShotAll: Boolean, shotFormat: (v) => ["jpeg", "png"].includes(v),
   shotQuality: isFiniteNumber, selectMode: (v) => ["instant", "confirm"].includes(v),
   selColor: isHexColor, saveShot: Boolean, saveShotDir: (v) => typeof v === "string",
-  copyShot: Boolean, statusBubble: Boolean, debugLogOn: Boolean,
+  copyShot: Boolean, statusBubble: Boolean, bubbleSize: isFiniteNumber, debugLogOn: Boolean,
   enableSearchAll: Boolean, infoCard: Boolean, whitelistMode: Boolean,
   whitelist: (v) => typeof v === "string", blacklist: (v) => typeof v === "string",
   allBtnIcon: (v) => typeof v === "string" && v.length <= 2, allBtnColor: isHexColor,
@@ -947,6 +956,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
     saveShotDir: DEFAULT_SAVE_DIR,
     copyShot: false,
     statusBubble: true,
+    bubbleSize: 12.5,
     debugLogOn: false,
     enableSearchAll: true,
     infoCard: true,
@@ -986,6 +996,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   document.getElementById("saveDirPreviewRow").style.display = s.saveShot === true ? "flex" : "none";
   document.getElementById("copyShot").checked = s.copyShot === true;
   document.getElementById("statusBubble").checked = s.statusBubble !== false;
+  document.getElementById("bubbleSize").value = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));
   document.getElementById("debugLogOn").checked = s.debugLogOn === true;
   renderLogView();
   document.getElementById("enableSearchAll").checked = s.enableSearchAll !== false;

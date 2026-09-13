@@ -24,6 +24,7 @@
   let confirmPulse = true; // 确认模式选框呼吸提醒（可在设置中关闭）
   let selColor = "#ffcc00";
   let statusBubbleOn = true;
+  let bubbleSize = 12.5;
   let searchAllOn = true; // 「全」按钮开关
   let allBtnIcon = "全";
   let infoCardOn = true; // 图片信息卡片开关
@@ -112,6 +113,7 @@
       confirmPulse: true,
         selColor: "#ffcc00",
         statusBubble: true,
+        bubbleSize: 12.5,
         enableSearchAll: true,
         allBtnIcon: "全",
         allBtnColor: "#3a3f45",
@@ -134,6 +136,7 @@
       confirmPulse = s.confirmPulse !== false;
       selColor = /^#[0-9a-f]{6}$/i.test(s.selColor) ? s.selColor : "#ffcc00";
       statusBubbleOn = s.statusBubble !== false;
+      bubbleSize = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));
       searchAllOn = s.enableSearchAll !== false;
       allBtnIcon = String(s.allBtnIcon || "全");
       allBtnColor = /^#[0-9a-f]{6}$/i.test(s.allBtnColor) ? s.allBtnColor : "#3a3f45";
@@ -202,6 +205,9 @@
         barEngines = null; // 重建图标条以增删「全」按钮
       }
       if (changes.infoCard) infoCardOn = changes.infoCard.newValue !== false;
+      if (changes.bubbleSize) {
+        bubbleSize = Math.min(28, Math.max(10, Number(changes.bubbleSize.newValue) || 12.5));
+      }
       if (changes.allBtnIcon || changes.allBtnColor) {
         allBtnIcon = changes.allBtnIcon
           ? String(changes.allBtnIcon.newValue || "全")
@@ -842,6 +848,7 @@
       document.documentElement.appendChild(statusBubble);
     }
     statusBubble.textContent = text;
+    statusBubble.style.fontSize = bubbleSize + "px";
     statusBubble.dataset.tone = tone || "busy";
     statusBubble.classList.add("ysx-show");
     const bw = statusBubble.offsetWidth || 120;

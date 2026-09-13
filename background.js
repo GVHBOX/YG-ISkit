@@ -420,36 +420,37 @@ async function uploadAndOpen(blob, settings, tabId) {
   const engines = settings.enableShotAll
     ? ["yandex", "google"]
     : [settings.uploadEngine];
-  let opened = false;
-  const errors = [];
-
-  for (const eng of engines) {
-    const label = eng === "google" ? "Google Lens" : "Yandex";
-    try {
-      sendStatus(tabId, (eng === "google" ? I18N.t("uploadingGoogle") : I18N.t("uploadingYandex")), "busy");
-      let url;
-      if (eng === "google") {
-        url = await uploadToGoogle(blob);
-        addHistory("shot", "Google Lens", url, "（截图）");
-        bumpStat("shot", "Google Lens");
-      } else {
-        const result = await uploadToYandex(blob);
-        url = result.url;
-        addHistory("shot", "Yandex", url, "（截图）");
-        bumpStat("shot", "Yandex");
-      }
-      await debugLog("capture", label + " ok: " + url.slice(0, 90));
-      sendStatus(tabId, I18N.t("doneOpening"), "ok");
-      await openTab(url, opened ? "background" : settings.openMode);
-      opened = true;
-    } catch (e) {
-      const msg = e && e.message ? e.message : String(e);
-      errors.push(label + "：" + msg);
-      await debugLog("capture", eng + " failed: " + msg);
-      sendStatus(tabId, label + " " + I18N.t("uploadFailedShort") + msg, "error");
+  if (engines.length > 1) sendStatus(tabId, I18N.t("uploadingBoth"), "busy");
+  const results = await Promise.allSettled(engines.map(async (eng) => {
+    if (eng === "google") {
+      const url = await uploadToGoogle(blob);
+      addHistory("shot", "Google Lens", url, "（截图）");
+      bumpStat("shot", "Google Lens");
+      await debugLog("capture", "Google Lens ok: " + url.slice(0, 90));
+      return url;
     }
-  }
-  if (!opened) throw new Error(errors.join("；"));
+    const result = await uploadToYandex(blob);
+    addHistory("shot", "Yandex", result.url, "（截图）");
+    bumpStat("shot", "Yandex");
+    await debugLog("capture", "Yandex ok: " + result.url.slice(0, 90));
+    return result.url;
+  }));
+  const urls = [];
+  const errors = [];
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") {
+      urls.push(r.value);
+      return;
+    }
+    const label = engines[i] === "google" ? "Google Lens" : "Yandex";
+    const msg = r.reason && r.reason.message ? r.reason.message : String(r.reason);
+    errors.push(label + "：" + msg);
+    sendStatus(tabId, label + " " + I18N.t("uploadFailedShort") + msg, "error");
+  });
+  if (!urls.length) throw new Error(errors.join("；"));
+  urls.forEach((url, i) => openTab(url, i === 0 ? settings.openMode : "background"));
+  if (errors.length) sendStatus(tabId, errors.join("；"), "error");
+  else sendStatus(tabId, I18N.t("doneOpening"), "ok");
 }
 
 async function searchByUpload(dataUrl) {
