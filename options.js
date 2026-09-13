@@ -539,19 +539,6 @@ blRowsEl.addEventListener("click", (e) => {
   }
 });
 
-document.getElementById("saveShot").addEventListener("change", async (e) => {
-  if (e.target.checked) {
-    let granted = false;
-    try {
-      granted = await chrome.permissions.request({ permissions: ["downloads"] });
-    } catch (err) { }
-    if (!granted) {
-      e.target.checked = false;
-      showStatus(I18N.t("dlPermDenied"), true);
-    }
-  }
-});
-
 function renderBarPreview() {
   const size = Number(document.getElementById("btnSize").value) || 28;
   const pv = document.getElementById("barPreview");
@@ -633,7 +620,6 @@ document.getElementById("save").addEventListener("click", async () => {
     selectMode: document.getElementById("selectMode").value,
     confirmPulse: document.getElementById("confirmPulse").checked,
     selColor: document.getElementById("selColorChip").dataset.color,
-    saveShot: document.getElementById("saveShot").checked,
     copyShot: document.getElementById("copyShot").checked,
     statusBubble: document.getElementById("statusBubble").checked,
     bubbleSize: Number(document.getElementById("bubbleSize").value) || 12.5,
@@ -770,7 +756,7 @@ const IMPORT_CHECKERS = {
   uploadEngine: (v) => ["yandex", "google"].includes(v),
   enableShotAll: Boolean, shotFormat: (v) => ["jpeg", "png"].includes(v),
   shotQuality: isFiniteNumber, selectMode: (v) => ["instant", "confirm"].includes(v),
-  selColor: isHexColor, saveShot: Boolean,
+  selColor: isHexColor,
   copyShot: Boolean, statusBubble: Boolean, bubbleSize: isFiniteNumber, debugLogOn: Boolean,
   enableSearchAll: Boolean, infoCard: Boolean, whitelistMode: Boolean,
   whitelist: (v) => typeof v === "string", blacklist: (v) => typeof v === "string",
@@ -865,19 +851,6 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   document.getElementById("selectMode").value = s.selectMode === "confirm" ? "confirm" : "instant";
   document.getElementById("confirmPulse").checked = s.confirmPulse !== false;
   syncConfirmPulseUi();
-  document.getElementById("saveShot").checked = s.saveShot === true;
-  let saveShotUi = s.saveShot === true;
-  if (saveShotUi) {
-    try {
-      saveShotUi = await chrome.permissions.contains({ permissions: ["downloads"] });
-    } catch (err) {
-      saveShotUi = false;
-    }
-    if (!saveShotUi) {
-      document.getElementById("saveShot").checked = false;
-      showStatus(I18N.t("dlPermDenied"), true);
-    }
-  }
   document.getElementById("copyShot").checked = s.copyShot === true;
   document.getElementById("statusBubble").checked = s.statusBubble !== false;
   document.getElementById("bubbleSize").value = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));

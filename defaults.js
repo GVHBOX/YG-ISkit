@@ -29,7 +29,6 @@ self.DEFAULT_SETTINGS = {
   selectMode: "instant",
   confirmPulse: true,
   selColor: "#ffcc00",
-  saveShot: false,
   copyShot: false,
   statusBubble: true,
   bubbleSize: 12.5,

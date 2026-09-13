@@ -368,16 +368,6 @@ async function captureAndSearch(tabId, rect) {
       blob = await (await fetch(dataUrl)).blob();
     }
 
-    if (settings.saveShot) {
-      try {
-        await saveShotToDownloads(blob, format);
-      } catch (e) {
-        console.error("ysx saveShot failed:", e);
-        await debugLog("capture", "saveShot failed: " + (e && e.message ? e.message : String(e)));
-        sendStatus(tabId, I18N.t("saveShotFailed"), "error");
-      }
-    }
-
     if (settings.copyShot) {
       try {
         sendStatus(tabId, I18N.t("copying"), "busy");
@@ -616,31 +606,6 @@ async function copyViaOffscreen(pngDataUrl) {
   const resp = await sendOffscreen({ type: "ysx-offscreen-copy", dataUrl: pngDataUrl });
   if (resp && resp.ok) return;
   throw new Error(I18N.t("clipboardFail") + ((resp && resp.error) || "无响应") + ")");
-}
-
-async function saveShotToDownloads(blob, format) {
-  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
-  if (!granted) {
-    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
-    return;
-  }
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  const stamp =
-    d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
-    "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
-  const ext = format === "png" ? "png" : "jpg";
-  const dataUrl = await blobToDataUrl(blob);
-  await setupOffscreenDoc();
-  const resp = await sendOffscreen({ type: "ysx-offscreen-objecturl", dataUrl });
-  if (!resp || !resp.ok || !resp.url) {
-    throw new Error(resp && resp.error ? resp.error : "无响应");
-  }
-  await chrome.downloads.download({
-    url: resp.url,
-    filename: "ysx-" + stamp + "." + ext,
-    saveAs: false,
-  });
 }
 
 async function uploadToYandex(blob) {
