@@ -1,4 +1,4 @@
-# Yandex/Google 以图搜图插件 (Image Search Kit)
+# YG以图搜图插件
 
 通用多引擎以图搜图 Chrome 扩展：**鼠标悬停图片即可选择引擎搜索**，支持**框选截图自动上传识图**（Yandex / Google Lens）。引擎列表完全可自定义，纯本地处理、无任何追踪。
 ---
