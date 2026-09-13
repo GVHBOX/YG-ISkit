@@ -99,13 +99,6 @@
     return true;
   }
 
-  const FALLBACK_COLORS = ["#4285F4", "#34A853", "#FBBC05", "#EA4335", "#7B1FA2", "#00838F", "#5D4037", "#455A64"];
-  function fallbackColor(name) {
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-    return FALLBACK_COLORS[h % FALLBACK_COLORS.length];
-  }
-
   async function loadContentSettings() {
     try {
       const s = await chrome.storage.sync.get({

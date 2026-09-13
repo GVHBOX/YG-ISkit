@@ -56,7 +56,7 @@ async function getSettings() {
     ysxBtnSize: 28,
     openMode: "foreground",
     enableSearchAll: true,
-    historyEnabled: true,
+    historyEnabled: false,
     historyKeep: 30, // 天，0 = 永久
     uploadEngine: "yandex",
     enableShotAll: false, // 「全」：截图同时用 Yandex + Google 识图
@@ -146,9 +146,9 @@ function addHistory(type, engineName, targetUrl, imgSrc) {
 
 async function doAddHistory(type, engineName, targetUrl, imgSrc) {
   try {
-    const { historyKeep = 30, historyEnabled = true } = await chrome.storage.sync.get({
+    const { historyKeep = 30, historyEnabled = false } = await chrome.storage.sync.get({
       historyKeep: 30,
-      historyEnabled: true,
+      historyEnabled: false,
     });
     if (historyEnabled === false) return; // 用户关闭了历史记录
     const { ysxHistory = [] } = await chrome.storage.local.get({ ysxHistory: [] });

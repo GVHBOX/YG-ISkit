@@ -1,9 +1,9 @@
 
 self.DEFAULT_ENGINES = [
-  { name: "Google Lens", url: "https://lens.google.com/uploadbyurl?url={%s}", enabled: true, icon: "G", color: "#4285F4" },
   { name: "Yandex", url: "https://yandex.ru/images/search?rpt=imageview&url={%s}", enabled: true, icon: "Y", color: "#FC3F1D" },
-  { name: "Bing", url: "https://www.bing.com/images/search?q=imgurl:{%s}", enabled: true, icon: "b", color: "#008373" },
-  { name: "Baidu", url: "https://graph.baidu.com/details?isfromtusoupc=1&tn=pc&image={%s}", enabled: true, icon: "度", color: "#7B1FA2" },
+  { name: "Google Lens", url: "https://lens.google.com/uploadbyurl?url={%s}", enabled: true, icon: "G", color: "#4285F4" },
+  { name: "Bing", url: "https://www.bing.com/images/search?q=imgurl:{%s}", enabled: false, icon: "b", color: "#008373" },
+  { name: "Baidu", url: "https://graph.baidu.com/details?isfromtusoupc=1&tn=pc&image={%s}", enabled: false, icon: "度", color: "#7B1FA2" },
   { name: "SauceNAO", url: "https://saucenao.com/search.php?url={%s}", enabled: false, icon: "S", color: "#C9A227" },
   { name: "Ascii2D", url: "https://ascii2d.net/search/url/{%s}", enabled: false, icon: "A", color: "#5C6BC0" },
   { name: "TinEye", url: "https://tineye.com/search?url={%s}", enabled: false, icon: "t", color: "#EE2B7B" },
@@ -28,6 +28,14 @@ self.hashString = function (s) {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h * 33) + s.charCodeAt(i)) >>> 0;
   return h.toString(36);
+};
+
+self.FALLBACK_COLORS = ["#4285F4", "#34A853", "#FBBC05", "#EA4335", "#7B1FA2", "#00838F", "#5D4037", "#455A64"];
+
+self.fallbackColor = function (name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return self.FALLBACK_COLORS[h % self.FALLBACK_COLORS.length];
 };
 
 self.iconKeyFor = function (name, img) {

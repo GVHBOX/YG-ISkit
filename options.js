@@ -755,7 +755,10 @@ document.getElementById("save").addEventListener("click", async () => {
 });
 
 async function renderStats() {
-  const { ysxStats = {} } = await chrome.storage.local.get({ ysxStats: {} });
+  const [{ ysxStats = {} }, { engines: stored = DEFAULT_ENGINES }] = await Promise.all([
+    chrome.storage.local.get({ ysxStats: {} }),
+    chrome.storage.sync.get({ engines: DEFAULT_ENGINES }),
+  ]);
   const block = document.getElementById("statsBlock");
   const days = Object.keys(ysxStats).sort().slice(-7);
   if (!days.length) {
@@ -775,7 +778,12 @@ async function renderStats() {
     }
   }
   const engList = Object.entries(engAgg).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const maxEng = engList.length ? engList[0][1] : 1;
+  const engTotal = engList.reduce((s, [, n]) => s + n, 0) || 1;
+  const colorByName = new Map(
+    (Array.isArray(stored) ? stored : [])
+      .filter((e) => e && e.name)
+      .map((e) => [e.name, /^#[0-9a-f]{6}$/i.test(e.color) ? e.color : ""])
+  );
 
   let html = '<h3>' + I18N.t("statsTitle") + '</h3><div class="stat-grid">';
   html += '<div class="stat-card"><h4>' + I18N.t("statsLast7") + '</h4><div class="stat-nums">' +
@@ -785,10 +793,11 @@ async function renderStats() {
     '</div></div>';
   html += '<div class="stat-card"><h4>' + I18N.t("statsEngines") + '</h4>';
   for (const [en, n] of engList) {
-    const pct = Math.round((n / maxEng) * 100);
+    const pct = Math.round((n / engTotal) * 100);
+    const color = colorByName.get(en) || fallbackColor(en);
     html += '<div class="stat-bar-row"><span class="stat-bar-label">' + escapeHtml(en) + '</span>' +
-      '<span class="stat-bar-track"><span class="stat-bar-fill" style="width:' + pct + '%"></span></span>' +
-      '<span class="stat-bar-val">' + n + '</span></div>';
+      '<span class="stat-bar-track"><span class="stat-bar-fill" style="width:' + pct + '%;background:' + color + '"></span></span>' +
+      '<span class="stat-bar-val">' + n + ' · ' + pct + '%</span></div>';
   }
   html += '</div></div>';
   block.innerHTML = html;
@@ -945,7 +954,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
     whitelist: COMMON_SITES.slice(0, 4).join("\n"),
     allBtnIcon: ALL_BTN_DEFAULT_ICON,
     allBtnColor: "#3a3f45",
-    historyEnabled: true,
+    historyEnabled: false,
     historyKeep: 30,
     blacklist: "",
   });
