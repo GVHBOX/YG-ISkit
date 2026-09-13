@@ -287,14 +287,16 @@ async function startCapture(tabId, source) {
     return;
   }
 
-  let response;
-  try {
-    response = await chrome.tabs.sendMessage(tabId, { type: "ysx-capture-request", source });
-  } catch (e) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 400));
+    let response;
+    try {
+      response = await chrome.tabs.sendMessage(tabId, { type: "ysx-capture-request", source });
+    } catch (e) {
+    }
+    if (response && response.status === "capturing") return;
   }
-  if (response && response.status === "capturing") return;
-
-  await captureAndSearch(tabId, null);
+  notify(I18N.t("extName"), I18N.t("pageNotReady"));
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
