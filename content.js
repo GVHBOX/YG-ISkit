@@ -143,8 +143,9 @@
       wlMode = s.whitelistMode === true;
       wlList = parseBlacklist(s.whitelist);
     } catch (e) { /* keep defaults */ }
-    barEngines = null; // 设置变化后重建图标条
+    barEngines = null;
     if (!hoverEnabled || !barAllowedOnSite()) hideHoverBar();
+    loadBarEngines();
   }
 
   loadContentSettings();
@@ -301,6 +302,22 @@
     infoCard.style.top = br.bottom + 4 + "px";
   }
 
+  async function loadBarEngines() {
+    const { engines: stored } = await chrome.storage.sync.get({ engines: DEFAULT_ENGINES });
+    const list = (Array.isArray(stored) ? stored : DEFAULT_ENGINES)
+      .filter((e) => e && e.name && e.url && e.enabled !== false);
+    const full = await hydrateIcons(list);
+    barEngines = full.map((e) => ({
+      ...e,
+      icon: e.icon || (e.name || "?")[0],
+      color: e.color || fallbackColor(e.name || "?"),
+    }));
+    if (currentImg || currentBgUrl) {
+      const src2 = (currentImg && (currentImg.currentSrc || currentImg.src)) || currentBgUrl || "";
+      if (src2) buildBarButtons(src2);
+    }
+  }
+
   function buildBarButtons(src) {
     const bar = ensureBar();
     bar.innerHTML = "";
@@ -322,21 +339,8 @@
 
     let engines = barEngines;
     if (!engines) {
-      engines = DEFAULT_ENGINES.filter((e) => e.enabled !== false);
-      chrome.storage.sync.get({ engines: DEFAULT_ENGINES }, async ({ engines: stored }) => {
-        const list = (Array.isArray(stored) ? stored : DEFAULT_ENGINES)
-          .filter((e) => e && e.name && e.url && e.enabled !== false);
-        const full = await hydrateIcons(list);
-        barEngines = full.map((e) => ({
-          ...e,
-          icon: e.icon || (e.name || "?")[0],
-          color: e.color || fallbackColor(e.name || "?"),
-        }));
-        if (currentImg || currentBgUrl) {
-          const src2 = (currentImg && (currentImg.currentSrc || currentImg.src)) || currentBgUrl || "";
-          if (src2) buildBarButtons(src2);
-        }
-      });
+      loadBarEngines();
+      return;
     }
 
     for (const e of engines) {
@@ -433,6 +437,7 @@
       .catch(() => {
         searching = false;
         if (hoverBar) hoverBar.classList.remove("ysx-loading");
+        showStatusBubble(I18N.t("imgFetchFail"), "error");
       });
   }
 

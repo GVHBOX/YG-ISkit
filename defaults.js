@@ -24,13 +24,23 @@ self.cleanSaveDir = function (p) {
   return segs[segs.length - 1] || "";
 };
 
+self.hashString = function (s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) + s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+};
+
+self.iconKeyFor = function (name, img) {
+  return "icon:" + String(name || "").trim().toLowerCase().slice(0, 50) + "-" + self.hashString(String(img || ""));
+};
+
 self.extractIconsToLib = async function (engines) {
   const lib = await (chrome.storage.local.get({ ysxIconLib: {} })).then((r) => r.ysxIconLib);
   const out = [];
   const usedKeys = new Set();
   for (const e of engines) {
     if (e && typeof e.iconImg === "string" && e.iconImg.startsWith("data:")) {
-      const key = "icon:" + String(e.name || "").trim().toLowerCase().slice(0, 50);
+      const key = self.iconKeyFor(e.name, e.iconImg);
       lib[key] = e.iconImg;
       usedKeys.add(key);
       out.push({ ...e, iconKey: key });

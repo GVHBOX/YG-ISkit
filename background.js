@@ -298,6 +298,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.template && msg.imgSrc && /^https?:/i.test(msg.imgSrc)) {
       getSettings().then((settings) => {
         const url = applyTemplate(msg.template, msg.imgSrc);
+        if (!/^https?:/i.test(url)) {
+          sendResponse({ ok: false });
+          return;
+        }
         debugLog("open-engine", msg.template.slice(0, 60) + " <- " + msg.imgSrc.slice(0, 60));
         addHistory("image", msg.engineName || "", url, msg.imgSrc);
         bumpStat("image", msg.engineName || "");
@@ -329,6 +333,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const names = Array.isArray(msg.names) ? msg.names : [];
         msg.templates.forEach((t, i) => {
           const url = applyTemplate(t, msg.imgSrc);
+          if (!/^https?:/i.test(url)) return;
           addHistory("image", names[i] || "", url, msg.imgSrc);
           bumpStat("image", names[i] || "");
           openTab(url, i === 0 ? settings.openMode : "background");

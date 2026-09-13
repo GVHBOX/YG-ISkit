@@ -64,7 +64,8 @@ function escapeHtml(s) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function engineRowHtml(e, index, total) {
@@ -807,8 +808,11 @@ async function renderHistory() {
       const time = `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
       const type = h.type === "shot" ? I18N.t("typeShot") : I18N.t("typeImage");
       const eng = escapeHtml(h.engine || "");
-      const url = escapeHtml(h.url || "");
-      return `<div class="h-item"><span class="h-time">${time}</span><span class="h-type ${h.type === "shot" ? "t-shot" : "t-img"}">${type}</span><span class="h-eng">${eng}</span><a class="h-link" href="${url}" target="_blank" rel="noreferrer noopener">${I18N.t("open")}</a></div>`;
+      const rawUrl = String(h.url || "");
+      const link = /^https?:/i.test(rawUrl)
+        ? `<a class="h-link" href="${escapeHtml(rawUrl)}" target="_blank" rel="noreferrer noopener">${I18N.t("open")}</a>`
+        : "";
+      return `<div class="h-item"><span class="h-time">${time}</span><span class="h-type ${h.type === "shot" ? "t-shot" : "t-img"}">${type}</span><span class="h-eng">${eng}</span>${link}</div>`;
     })
     .join("");
 }
@@ -845,7 +849,7 @@ document.getElementById("exportSettings").addEventListener("click", async () => 
 });
 
 const IMPORT_CHECKERS = {
-  engines: (v) => Array.isArray(v) && v.every((e) => e && typeof e === "object" && typeof e.name === "string" && typeof e.url === "string"),
+  engines: (v) => Array.isArray(v) && v.every((e) => e && typeof e === "object" && typeof e.name === "string" && typeof e.url === "string" && /^https?:\/\//i.test(e.url)),
   screenshotMenu: Boolean, barAlign: (v) => ["left", "center", "right"].includes(v),
   hoverEnabled: Boolean, hoverDelay: isFiniteNumber, hideDelay: isFiniteNumber,
   ysxBtnSize: isFiniteNumber, openMode: (v) => ["foreground", "background", "current"].includes(v),
