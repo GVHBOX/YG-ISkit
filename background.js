@@ -619,8 +619,11 @@ async function copyViaOffscreen(pngDataUrl) {
 }
 
 async function saveShotToDownloads(blob, format) {
-  const { saveShotDir = "" } = await chrome.storage.sync.get({ saveShotDir: "" });
-  const dir = cleanSaveDir(saveShotDir);
+  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
+  if (!granted) {
+    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
+    return;
+  }
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   const stamp =
@@ -628,11 +631,6 @@ async function saveShotToDownloads(blob, format) {
     "-" + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
   const ext = format === "png" ? "png" : "jpg";
   const dataUrl = await blobToDataUrl(blob);
-  const granted = await chrome.permissions.contains({ permissions: ["downloads"] });
-  if (!granted) {
-    notify(I18N.t("extName"), I18N.t("dlPermMissing"));
-    return;
-  }
   await setupOffscreenDoc();
   const resp = await sendOffscreen({ type: "ysx-offscreen-objecturl", dataUrl });
   if (!resp || !resp.ok || !resp.url) {
@@ -640,7 +638,7 @@ async function saveShotToDownloads(blob, format) {
   }
   await chrome.downloads.download({
     url: resp.url,
-    filename: (dir ? dir + "/" : "") + "ysx-" + stamp + "." + ext,
+    filename: "ysx-" + stamp + "." + ext,
     saveAs: false,
   });
 }

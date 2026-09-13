@@ -539,50 +539,6 @@ blRowsEl.addEventListener("click", (e) => {
   }
 });
 
-document.getElementById("resetDirBtn").addEventListener("click", () => {
-  document.getElementById("saveShotDir").value = DEFAULT_SAVE_DIR;
-  markDirty();
-  updateSaveDirPreview();
-});
-
-let downloadRoot = "";
-
-async function detectDownloadRoot() {
-  try {
-    const items = await new Promise((r) =>
-      chrome.downloads.search({ limit: 1, orderBy: ["-startTime"] }, (its) => r(its || []))
-    );
-    if (items.length && items[0].filename) {
-      const isWin = navigator.userAgent.includes("Windows");
-      const sep = isWin ? "\\" : "/";
-      const f = isWin ? items[0].filename.replace(/\//g, sep) : items[0].filename;
-      const i = f.lastIndexOf(sep);
-      if (i >= 0) {
-        const segs = f.slice(0, i).split(sep);
-        const dir = cleanSaveDir(document.getElementById("saveShotDir").value);
-        if (dir && segs[segs.length - 1] === dir) segs.pop();
-        const root = segs.join(sep);
-        downloadRoot = root ? root + sep : "";
-      }
-    }
-  } catch (e) { }
-  updateSaveDirPreview();
-}
-
-function updateSaveDirPreview() {
-  const dirEl = document.getElementById("saveShotDir");
-  const row = document.getElementById("saveDirPreviewRow");
-  if (!row || row.style.display === "none") return;
-  const dir = cleanSaveDir(dirEl.value);
-  const isWin = navigator.userAgent.includes("Windows");
-  const sep = isWin ? "\\" : "/";
-  const root = (downloadRoot || "").replace(/[/\\]+$/, "");
-  document.getElementById("saveDirPreview").textContent =
-    root ? "📁 " + root + sep + (dir ? dir + sep : "") : dir;
-}
-
-document.getElementById("saveShotDir").addEventListener("input", updateSaveDirPreview);
-
 document.getElementById("saveShot").addEventListener("change", async (e) => {
   if (e.target.checked) {
     let granted = false;
@@ -594,8 +550,6 @@ document.getElementById("saveShot").addEventListener("change", async (e) => {
       showStatus(I18N.t("dlPermDenied"), true);
     }
   }
-  document.getElementById("saveDirRow").style.display = e.target.checked ? "flex" : "none";
-  document.getElementById("saveDirPreviewRow").style.display = e.target.checked ? "flex" : "none";
 });
 
 function renderBarPreview() {
@@ -680,7 +634,6 @@ document.getElementById("save").addEventListener("click", async () => {
     confirmPulse: document.getElementById("confirmPulse").checked,
     selColor: document.getElementById("selColorChip").dataset.color,
     saveShot: document.getElementById("saveShot").checked,
-    saveShotDir: cleanSaveDir(document.getElementById("saveShotDir").value),
     copyShot: document.getElementById("copyShot").checked,
     statusBubble: document.getElementById("statusBubble").checked,
     bubbleSize: Number(document.getElementById("bubbleSize").value) || 12.5,
@@ -817,7 +770,7 @@ const IMPORT_CHECKERS = {
   uploadEngine: (v) => ["yandex", "google"].includes(v),
   enableShotAll: Boolean, shotFormat: (v) => ["jpeg", "png"].includes(v),
   shotQuality: isFiniteNumber, selectMode: (v) => ["instant", "confirm"].includes(v),
-  selColor: isHexColor, saveShot: Boolean, saveShotDir: (v) => typeof v === "string",
+  selColor: isHexColor, saveShot: Boolean,
   copyShot: Boolean, statusBubble: Boolean, bubbleSize: isFiniteNumber, debugLogOn: Boolean,
   enableSearchAll: Boolean, infoCard: Boolean, whitelistMode: Boolean,
   whitelist: (v) => typeof v === "string", blacklist: (v) => typeof v === "string",
@@ -913,7 +866,6 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   document.getElementById("confirmPulse").checked = s.confirmPulse !== false;
   syncConfirmPulseUi();
   document.getElementById("saveShot").checked = s.saveShot === true;
-  document.getElementById("saveShotDir").value = String(s.saveShotDir || DEFAULT_SAVE_DIR);
   let saveShotUi = s.saveShot === true;
   if (saveShotUi) {
     try {
@@ -926,8 +878,6 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
       showStatus(I18N.t("dlPermDenied"), true);
     }
   }
-  document.getElementById("saveDirRow").style.display = saveShotUi ? "flex" : "none";
-  document.getElementById("saveDirPreviewRow").style.display = saveShotUi ? "flex" : "none";
   document.getElementById("copyShot").checked = s.copyShot === true;
   document.getElementById("statusBubble").checked = s.statusBubble !== false;
   document.getElementById("bubbleSize").value = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));
@@ -955,8 +905,6 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   renderBarPreview();
   renderHistory();
   renderStats();
-  detectDownloadRoot();
-  updateSaveDirPreview();
 })();
 
 function parseBlacklistStr(s) {

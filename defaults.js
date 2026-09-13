@@ -10,8 +10,6 @@ self.DEFAULT_ENGINES = [
   { name: "Sogou", url: "https://pic.sogou.com/ris?query={%s}", enabled: false, icon: "S", color: "#FB6022" },
 ];
 
-self.DEFAULT_SAVE_DIR = "以图搜图截图";
-
 self.COMMON_SITES = ["google.com", "yandex.ru", "bing.com", "baidu.com", "saucenao.com", "ascii2d.net"];
 
 self.DEFAULT_WHITELIST = self.COMMON_SITES.slice(0, 2).join("\n");
@@ -32,7 +30,6 @@ self.DEFAULT_SETTINGS = {
   confirmPulse: true,
   selColor: "#ffcc00",
   saveShot: false,
-  saveShotDir: self.DEFAULT_SAVE_DIR,
   copyShot: false,
   statusBubble: true,
   bubbleSize: 12.5,
@@ -46,18 +43,6 @@ self.DEFAULT_SETTINGS = {
   historyEnabled: false,
   historyKeep: 30,
   blacklist: "",
-};
-
-self.cleanSaveDir = function (p) {
-  const segs = String(p || "")
-    .trim()
-    .replace(/\\/g, "/")
-    .split("/")
-    .map((x) => x.trim())
-    .filter((x) => x && x !== "." && x !== ".." && !/^[a-zA-Z]:$/.test(x))
-    .map((x) => x.replace(/[\\:*?\"<>|]/g, ""))
-    .filter(Boolean);
-  return segs[segs.length - 1] || "";
 };
 
 self.hashString = function (s) {
