@@ -131,6 +131,7 @@ let dirty = false;
 
 function markDirty() {
   dirty = true;
+  renderBarPreview();
 }
 
 function clearDirty() {
@@ -344,7 +345,10 @@ rowsEl.addEventListener("click", (e) => {
   }
   if (e.target.classList.contains("e-del")) {
     const row = e.target.closest(".engine-row");
-    if (row) row.remove();
+    if (row) {
+      row.remove();
+      markDirty();
+    }
   }
 });
 
@@ -629,18 +633,31 @@ function renderBarPreview() {
   const bar = document.createElement("div");
   bar.className = "pv-bar";
   bar.style.setProperty("--size", size + "px");
-  const samples = [
-    ["Y", "#FC3F1D"],
-    ["G", "#4285F4"],
-    ["度", "#2932E1"],
-    ["∀", "#3a3f45"],
-  ];
-  for (const [t, c] of samples) {
+  const engines = getEnginesFromUI().filter((e) => e.enabled);
+  for (const e of engines) {
     const b = document.createElement("div");
     b.className = "pv-btn";
-    b.style.background = c;
-    b.textContent = t;
+    if (e.iconImg) {
+      const img = document.createElement("img");
+      img.src = e.iconImg;
+      img.alt = "";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.borderRadius = "50%";
+      b.appendChild(img);
+      b.style.background = "transparent";
+    } else {
+      b.style.background = e.color || fallbackColor(e.name);
+      b.textContent = e.icon || (e.name || "?")[0];
+    }
     bar.appendChild(b);
+  }
+  if (document.getElementById("enableSearchAll").checked && engines.length > 1) {
+    const all = document.createElement("div");
+    all.className = "pv-btn";
+    all.style.background = document.getElementById("allBtnColorChip").dataset.color || "#3a3f45";
+    all.textContent = document.getElementById("allBtnIcon").value.trim() || ALL_BTN_DEFAULT_ICON;
+    bar.appendChild(all);
   }
   pv.appendChild(bar);
 }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YG以图搜图助手",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "minimum_chrome_version": "116",
   "description": "通用多引擎以图搜图：悬停图片选引擎直开，框选截图自动上传 Yandex / Google Lens 识图。引擎明文自定义。",
   "permissions": [
