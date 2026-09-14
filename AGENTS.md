@@ -28,6 +28,5 @@
 仓库元文件（`README.md`、`LICENSE`、`pyproject.toml`、`happycrate.spec`、
 `happycrate.bat`、`.gitignore`、`.gitattributes`、`AGENTS.md`）、运行时数据（`data/`）、构建产物（`dist/`、`build/`）。
 
-`.ai/reports/` 里的成品报告对工具可见（gitignore 已放行），交付时用原生
-Windows 路径（`D:\...`）引用，不要用 `/d/...` 这种 shell 风格路径。
-`.ai/` 其余子目录（tmp、backups、extracted 等）仍是纯工作区，不进版本库。
+`.ai/` 整个目录是纯工作区，永不进版本库（.gitignore 全量忽略），git 历史里也不留。
+交付时用原生 Windows 路径（`D:\...`）引用，不要用 `/d/...` 这种 shell 风格路径。
