@@ -463,7 +463,7 @@ async function cropFromDataUrl(dataUrl, rect, format, quality) {
   }
 }
 
-let googleWarm = null; // { ts, net }
+let googleWarm = null;
 const GOOGLE_WARM_TTL = 5 * 60 * 1000;
 
 async function uploadToGoogle(blob) {
@@ -500,7 +500,7 @@ async function uploadToGoogle(blob) {
     throw new Error(I18N.t("netGoogle"));
   }
   if (!resp.ok) {
-    googleWarm = null; // 403 可能因 cookie 失效，下次强制重新预热
+    googleWarm = null;
     throw new Error(
       I18N.t("connPrefix") + resp.status + I18N.t("connSuffix") + net + I18N.t("persist403")
     );
@@ -577,8 +577,8 @@ async function setupOffscreenDoc() {
   if (await hasOffscreenDoc()) return;
   await chrome.offscreen.createDocument({
     url: "offscreen.html",
-    reasons: ["CLIPBOARD", "BLOBS"],
-    justification: "将截图写入剪贴板并为下载生成对象链接",
+    reasons: ["CLIPBOARD"],
+    justification: "将截图写入剪贴板",
   });
 }
 
@@ -605,7 +605,7 @@ async function sendOffscreen(payload) {
 async function copyViaOffscreen(pngDataUrl) {
   const resp = await sendOffscreen({ type: "ysx-offscreen-copy", dataUrl: pngDataUrl });
   if (resp && resp.ok) return;
-  throw new Error(I18N.t("clipboardFail") + ((resp && resp.error) || "无响应") + ")");
+  throw new Error(I18N.t("clipboardFail") + ((resp && resp.error) || I18N.t("offscreenNoResp")) + ")");
 }
 
 async function uploadToYandex(blob) {
