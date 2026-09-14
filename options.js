@@ -763,6 +763,7 @@ const IMPORT_CHECKERS = {
   allBtnIcon: (v) => typeof v === "string" && v.length <= 2, allBtnColor: isHexColor,
   historyEnabled: Boolean, historyKeep: (v) => [0, 7, 30, 90].includes(Number(v)),
   lang: (v) => ["zh", "en"].includes(v), theme: (v) => ["light", "dark"].includes(v),
+  allowWebdriverBar: Boolean,
 };
 
 function isFiniteNumber(v) { return Number.isFinite(Number(v)); }
@@ -856,18 +857,18 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   document.getElementById("bubbleSize").value = Math.min(28, Math.max(10, Number(s.bubbleSize) || 12.5));
   document.getElementById("debugLogOn").checked = s.debugLogOn === true;
   renderLogView();
-  document.getElementById("enableSearchAll").checked = s.enableSearchAll !== false;
-  document.getElementById("infoCard").checked = s.infoCard !== false;
-  document.getElementById("whitelistMode").checked = s.whitelistMode === true;
+  document.getElementById("enableSearchAll").checked = s.enableSearchAll === true;
+  document.getElementById("infoCard").checked = s.infoCard === true;
+  document.getElementById("whitelistMode").checked = s.whitelistMode !== false;
   renderWhitelist(parseBlacklistStr(String(s.whitelist ?? "")));
   document.getElementById("allBtnCustomRow").style.display =
-    s.enableSearchAll !== false ? "block" : "none";
+    s.enableSearchAll === true ? "block" : "none";
   document.getElementById("allBtnIcon").value = String(s.allBtnIcon || ALL_BTN_DEFAULT_ICON);
   const allChip = document.getElementById("allBtnColorChip");
   allChip.dataset.color = /^#[0-9a-f]{6}$/i.test(s.allBtnColor) ? s.allBtnColor : "#3a3f45";
   allChip.style.background = allChip.dataset.color;
   bindPaletteToChip(allChip);
-  document.getElementById("historyEnabled").checked = s.historyEnabled !== false;
+  document.getElementById("historyEnabled").checked = s.historyEnabled === true;
   document.getElementById("historyKeep").value = String([0, 7, 30, 90].includes(Number(s.historyKeep)) ? Number(s.historyKeep) : 30);
   renderBlacklist(parseBlacklistStr(String(s.blacklist || "")));
   const selChip = document.getElementById("selColorChip");
